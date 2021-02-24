@@ -122,10 +122,10 @@ namespace NumberClass
             n1.exponent == n2.exponent && n1.mantissa < n2.mantissa;
 
         public static bool operator ==(NumberClass n1, NumberClass n2) =>
-            n1!.mantissa == n2!.mantissa && n1.exponent == n2.exponent;
+            n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
 
         public static bool operator !=(NumberClass n1, NumberClass n2) =>
-            n1!.mantissa != n2!.mantissa || n1.exponent != n2.exponent;
+            n1.mantissa != n2.mantissa || n1.exponent != n2.exponent;
 
         public static bool operator >=(NumberClass n1, NumberClass n2) => n1 == n2 || n1 > n2;
         public static bool operator <=(NumberClass n1, NumberClass n2) => n1 == n2 || n1 < n2;
