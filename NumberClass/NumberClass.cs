@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 
 namespace NumberClass
 {
@@ -31,8 +30,7 @@ namespace NumberClass
 
         public NumberClass(string s)
         {
-            s = Regex.Replace(s, @"^e", "1e").Replace("ee", "e1e");
-            if ((s = s.ToLower()).Contains("e"))
+            if ((s = s.ToLower().Replace("ee", "e1e")).Contains("e"))
             {
                 var split = s.Split('e');
                 if (split.Length == 2) (mantissa, exponent) = (double.Parse(split[0]), double.Parse(split[1]));
