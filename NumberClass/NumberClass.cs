@@ -11,6 +11,7 @@ namespace NumberClass
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
 
+        public static NumberClass Float = new NumberClass(float.MaxValue);
         public static NumberClass Double = new NumberClass(double.MaxValue);
         public static NumberClass Long = new NumberClass(long.MaxValue);
         public static NumberClass Int = new NumberClass(int.MaxValue);
@@ -110,6 +111,10 @@ namespace NumberClass
         }
 
         // public NumberClass Root(NumberClass @base) => Pow(1 / @base); // lazy root sqrt(16) = (16)^(1/2) sadly doesn't work because of floats
+        public NumberClass Sqrt() =>
+            new NumberClass(Math.Sqrt(mantissa * (exponent % 2 == 0 ? 1 : 10)),
+                (exponent % 2 == 0 ? exponent : exponent - 1) / 2);
+
         public NumberClass Log10() => exponent + Math.Log10(mantissa);
         public NumberClass Log(NumberClass @base) => Log10() / @base.Log10();
 
@@ -133,9 +138,21 @@ namespace NumberClass
         public static implicit operator NumberClass(double d) => new NumberClass(d);
         public static implicit operator NumberClass(string s) => new NumberClass(s);
 
+        public static explicit operator int(NumberClass n) =>
+            (int) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+
         public static explicit operator long(NumberClass n) =>
             (long) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
+        public static explicit operator double(NumberClass n) =>
+            n > Double ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent);
+
+        public static explicit operator float(NumberClass n) =>
+            (float) (n > Float ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+
+        public NumberClass Ceiling() => new NumberClass(Math.Ceiling(mantissa), exponent);
+        public NumberClass Floor() => new NumberClass(Math.Floor(mantissa), exponent);
+        public NumberClass Round() => new NumberClass(Math.Round(mantissa), exponent);
         public NumberClass Max(NumberClass n) => n > this ? n : this;
         public NumberClass Abs() => new NumberClass(Math.Abs(mantissa), exponent);
         public bool IsNeg() => mantissa < 0;
