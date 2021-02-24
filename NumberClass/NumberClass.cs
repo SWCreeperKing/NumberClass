@@ -119,12 +119,10 @@ namespace NumberClass
         public NumberClass Log(NumberClass @base) => Log10() / @base.Log10();
 
         public static bool operator >(NumberClass n1, NumberClass n2) =>
-            n1.exponent > n2.exponent ||
-            n1.exponent == n2.exponent && n1.mantissa > n2.mantissa;
+            n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa;
 
         public static bool operator <(NumberClass n1, NumberClass n2) =>
-            n1.exponent < n2.exponent ||
-            n1.exponent == n2.exponent && n1.mantissa < n2.mantissa;
+            n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa;
 
         public static bool operator ==(NumberClass n1, NumberClass n2) =>
             n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
