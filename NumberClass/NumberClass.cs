@@ -11,10 +11,12 @@ namespace NumberClass
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
-        public static NumberClass Float = new NumberClass(float.MaxValue);
         public static NumberClass Double = new NumberClass(double.MaxValue);
+        public static NumberClass Float = new NumberClass(float.MaxValue);
         public static NumberClass Long = new NumberClass(long.MaxValue);
         public static NumberClass Int = new NumberClass(int.MaxValue);
+        public static NumberClass One = new NumberClass(1);
+        public static NumberClass Zero = new NumberClass(0);
 
         public double mantissa;
         public double exponent;
@@ -76,25 +78,25 @@ namespace NumberClass
             n1 + new NumberClass(-n2.mantissa, n2.exponent);
 
         public static NumberClass operator *(NumberClass n1, NumberClass n2) =>
-            n1 == 0 || n2 == 0
+            n1 == Zero || n2 == Zero
                 ? 0
-                : n1 == 1 || n2 == 1
+                : n1 == One || n2 == One
                     ? n1.Max(n2)
                     : new NumberClass(n1.mantissa * n2.mantissa, n1.exponent + n2.exponent);
 
         public static NumberClass operator /(NumberClass n1, NumberClass n2) =>
-            n1 == 0
-                ? 0
-                : n2 == 0
+            n1 == Zero
+                ? Zero
+                : n2 == Zero
                     ? throw new DivideByZeroException("NumberClass: Can not divide by 0")
-                    : n2 == 1
+                    : n2 == One
                         ? n1
                         : new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
 
         public NumberClass Pow(NumberClass n)
         {
-            if (n == 1 || this == 1 || this == 0) return this;
-            if (n == 0) return 1;
+            if (n == One || this == One || this == Zero) return this;
+            if (n == Zero) return One;
             if (exponent == 0 && n.exponent == 0) return Math.Pow(mantissa, n.mantissa);
             var tempExpo = exponent + Math.Log10(mantissa);
             if (Math.Max(Math.Log10(exponent), 0) + n.exponent < 300)
@@ -119,8 +121,8 @@ namespace NumberClass
         public NumberClass Sqrt() => Root(2);
         public NumberClass Log10() => exponent + Math.Log10(mantissa);
         public NumberClass Log(NumberClass @base) => Log10() / @base.Log10();
-        public static NumberClass operator ++(NumberClass n) => n += 1;
-        public static NumberClass operator --(NumberClass n) => n -= 1;
+        public static NumberClass operator ++(NumberClass n) => n += One;
+        public static NumberClass operator --(NumberClass n) => n -= One;
 
         public static bool operator >(NumberClass n1, NumberClass n2) =>
             n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa;
