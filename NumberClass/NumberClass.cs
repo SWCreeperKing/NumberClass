@@ -170,6 +170,7 @@ namespace NumberClass
         public NumberClass Min(NumberClass n) => n < this ? n : this;
         public NumberClass Abs() => new NumberClass(Math.Abs(mantissa), exponent);
         public bool IsNeg() => mantissa < 0;
+        public bool IsNaN() => double.IsNaN(mantissa) || double.IsNaN(exponent);
         public override string ToString() => FormatNc(format);
         public string ToString(Func<double, double, string> format) => format.Invoke(mantissa, exponent);
 
@@ -177,17 +178,23 @@ namespace NumberClass
         {
             if (exponent < 5) return $"{mantissa * Math.Pow(10, exponent):#,##0.##}";
             var useMan = Math.Log10(exponent) < 15; // at a point the mantissa is useless
+            string CutOff1Check(string s) => s.Replace("e1e", CutOff1E ? "ee" : "e1e");
+
+            string formatMantissa;
+            string formatExponent;
             switch (format)
             {
                 case Format.Engineering:
                     var extended = exponent % 3;
-                    return
-                        $"{(useMan ? $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}" : "")}e{new NumberClass(exponent - extended).FormatNc(Format.Engineering)}";
+                    formatMantissa = useMan ? $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}" : "";
+                    formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering);
+                    break;
                 default:
-                    return $"{(useMan ? $"{Math.Floor(mantissa * 100) / 100}" : "")}e{new NumberClass(exponent)}"
-                        .Replace("e1e",
-                            CutOff1E ? "ee" : "e1e");
+                    formatMantissa = useMan ? $"{Math.Floor(mantissa * 100) / 100}" : "";
+                    formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
+                    break;
             }
+            return CutOff1Check($"{formatMantissa}e{formatExponent}");
         }
     }
 }
