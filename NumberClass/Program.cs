@@ -8,6 +8,9 @@ namespace NumberClass
         {
             NumberClass v1 = 10000;
             NumberClass v2 = "1e50";
+            NumberClass v3 = 1;
+
+            Console.WriteLine($"{v3} {v3++} {v3}");
             
             Console.WriteLine($"{v1.Log10()} {v2.Log10()}");
             Console.WriteLine($"Log{v1} {v2} = {v2.Log(v1)}");
