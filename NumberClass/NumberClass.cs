@@ -91,12 +91,23 @@ namespace NumberClass
                         ? n1
                         : new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
 
-        public NumberClass Pow(NumberClass n1)
+        public NumberClass Pow(NumberClass n)
         {
-            if (n1 == 0 || this == 1) return 1;
-            if (n1 == 1) return this;
-            if (n1.IsNeg()) return 1 / Pow(n1.Abs());
-            return new NumberClass(Math.Pow(mantissa, n1.mantissa), exponent * n1.exponent);
+            if (n == 1 || this == 1 || this == 0) return this;
+            if (n == 0) return 1;
+            if (exponent == 0 && n.exponent == 0) return Math.Pow(mantissa, n.mantissa);
+            var tempExpo = exponent + Math.Log10(mantissa);
+            if (Math.Max(Math.Log10(exponent), 0) + n.exponent < 300)
+            {
+                tempExpo *= n.GetRealMantissa();
+                return tempExpo < 1e17
+                    ? new NumberClass(Math.Pow(10, tempExpo % 1), Math.Floor(tempExpo))
+                    : new NumberClass(mantissa, tempExpo);
+            }
+
+            tempExpo = Math.Log10(tempExpo);
+            tempExpo += n.exponent + Math.Log10(n.exponent);
+            return new NumberClass(mantissa, tempExpo);
         }
         
         public NumberClass Root(long @base)
@@ -141,6 +152,7 @@ namespace NumberClass
         public static explicit operator float(NumberClass n) =>
             (float) (n > Float ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
+        public double GetRealMantissa() => exponent > 308 ? mantissa : mantissa * Math.Pow(10, exponent);
         public NumberClass Ceiling() => new NumberClass(Math.Ceiling(mantissa), exponent);
         public NumberClass Floor() => new NumberClass(Math.Floor(mantissa), exponent);
         public NumberClass Round() => new NumberClass(Math.Round(mantissa), exponent);

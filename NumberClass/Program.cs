@@ -39,6 +39,13 @@ namespace NumberClass
             Console.WriteLine(new NumberClass(3).Pow(4));
             Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
 
+            NumberClass b = 2;
+            while (true)
+            {
+                Console.WriteLine(b = b.Pow(2));
+                Console.ReadKey();
+            }
+            
             Console.ReadLine();
         }
     }
