@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NumberClass
 {
@@ -11,11 +13,13 @@ namespace NumberClass
         public enum Format
         {
             Scientific,
+            ScientificStatic,
+            ScientificExtended,
             Engineering,
-            Alphabet
         }
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
+        public static int SciStaticLeng = 15;
         public static float Version { get; } = .22f;
         public static Format format = Format.Scientific;
 
@@ -33,7 +37,7 @@ namespace NumberClass
         public NumberClass() : this(0)
         {
         }
-        
+
         public NumberClass(double mantissa = 0, double exponent = 0)
         {
             (this.mantissa, this.exponent) = (mantissa, exponent);
@@ -191,26 +195,20 @@ namespace NumberClass
             string formatExponent;
             switch (format)
             {
-                case Format.Alphabet:
-
-                    // string Letter(double n)
-                    // {
-                    //     
-                    // }
-                    //
-                    // if (useMan)
-                    // {
-                    //     
-                    // }
-                    return "WIP";
-                    break;
                 case Format.Engineering:
                     var extended = exponent % 3;
                     formatMantissa = useMan ? $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}" : "";
                     formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering);
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
+                case Format.ScientificStatic:
+
+                    formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
+                    var ext = Math.Pow(10, SciStaticLeng - 2 - formatExponent.Length);
+                    formatMantissa = useMan ? $"{Math.Floor(mantissa * ext) / ext}" : "";
+                    return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 default:
-                    formatMantissa = useMan ? $"{Math.Floor(mantissa * 100) / 100}" : "";
+                    var trunc = format != Format.ScientificExtended? 100 : 1000000;
+                    formatMantissa = useMan ? $"{Math.Floor(mantissa * trunc) / trunc}" : "";
                     formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
             }

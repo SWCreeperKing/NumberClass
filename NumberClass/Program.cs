@@ -40,11 +40,11 @@ namespace NumberClass
             Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
 
             NumberClass b = 2;
-            NumberClass.format = NumberClass.Format.Engineering;
+            NumberClass.format = NumberClass.Format.ScientificStatic;
             while (true)
             {
                 Console.WriteLine(b = b.Pow(2));
-                Console.ReadKey();
+                Console.ReadKey(true);
             }
             
             Console.ReadLine();
