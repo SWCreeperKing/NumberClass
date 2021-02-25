@@ -15,7 +15,7 @@ namespace NumberClass
         }
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
-        public static float Version { get; } = .19f;
+        public static float Version { get; } = .20f;
         public static Format format = Format.Scientific;
 
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
@@ -167,6 +167,7 @@ namespace NumberClass
         public NumberClass Floor() => new NumberClass(Math.Floor(mantissa), exponent);
         public NumberClass Round() => new NumberClass(Math.Round(mantissa), exponent);
         public NumberClass Max(NumberClass n) => n > this ? n : this;
+        public NumberClass Min(NumberClass n) => n < this ? n : this;
         public NumberClass Abs() => new NumberClass(Math.Abs(mantissa), exponent);
         public bool IsNeg() => mantissa < 0;
         public override string ToString() => FormatNc(format);
@@ -175,15 +176,17 @@ namespace NumberClass
         public string FormatNc(Format format)
         {
             if (exponent < 5) return $"{mantissa * Math.Pow(10, exponent):#,##0.##}";
+            var useMan = Math.Log10(exponent) < 15; // at a point the mantissa is useless
             switch (format)
             {
                 case Format.Engineering:
                     var extended = exponent % 3;
                     return
-                        $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}e{new NumberClass(exponent - extended).FormatNc(Format.Engineering)}";
+                        $"{(useMan ? $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}" : "")}e{new NumberClass(exponent - extended).FormatNc(Format.Engineering)}";
                 default:
-                    return $"{Math.Floor(mantissa * 100) / 100}e{new NumberClass(exponent)}".Replace("e1e",
-                        CutOff1E ? "ee" : "e1e");
+                    return $"{(useMan ? $"{Math.Floor(mantissa * 100) / 100}" : "")}e{new NumberClass(exponent)}"
+                        .Replace("e1e",
+                            CutOff1E ? "ee" : "e1e");
             }
         }
     }
