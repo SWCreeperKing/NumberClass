@@ -11,7 +11,7 @@ namespace NumberClass
             NumberClass v3 = 1;
 
             Console.WriteLine($"{v3} {v3++} {v3}");
-            
+
             Console.WriteLine($"{v1.Log10()} {v2.Log10()}");
             Console.WriteLine($"Log{v1} {v2} = {v2.Log(v1)}");
             Console.WriteLine($"{v1} * {v2} = {v1 * v2}");
@@ -26,13 +26,15 @@ namespace NumberClass
             Console.WriteLine($"{v1} != {v2} = {v1 != v2}");
             Console.WriteLine($"{v1} != {v2} = {v1 != v2}");
 
-            Console.WriteLine($"{new NumberClass("1e30")}");
-            Console.WriteLine($"{new NumberClass("1ee30")}");
-            
             Console.WriteLine($"{new NumberClass(16).Sqrt()}");
             Console.WriteLine($"{new NumberClass(160).Sqrt()}");
             Console.WriteLine($"{new NumberClass(1600).Sqrt()}");
             Console.WriteLine($"{new NumberClass(16000).Sqrt()}");
+
+            Console.WriteLine($"{new NumberClass("1e30")}");
+            Console.WriteLine($"{new NumberClass("1ee30")}");
+            Console.WriteLine($"{new NumberClass("1ee308")}");
+            Console.WriteLine($"{new NumberClass("1e30") + "6e29"}");
 
             Console.ReadLine();
         }

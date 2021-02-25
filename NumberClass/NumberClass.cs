@@ -55,8 +55,8 @@ namespace NumberClass
             var isNeg = mantissa < 0;
             if (isNeg) mantissa = Math.Abs(mantissa);
             var log = Math.Log10(mantissa);
-            mantissa /= Math.Pow(10, log);
-            exponent += log;
+            mantissa /= Math.Pow(10, (long) log);
+            exponent += (long) log;
             if (isNeg) mantissa = -mantissa;
         }
 
@@ -161,7 +161,7 @@ namespace NumberClass
         public override string ToString() =>
             exponent < 5
                 ? $"{mantissa * Math.Pow(10, exponent):#,##0.##}"
-                : $"{mantissa:0.##}e{new NumberClass(exponent)}".Replace("e1e", CutOff1E ? "ee" : "e1e");
+                : $"{mantissa:#0.##}e{new NumberClass(exponent)}".Replace("e1e", CutOff1E ? "ee" : "e1e");
 
         public string ToString(Func<double, double, string> format) => format.Invoke(mantissa, exponent);
     }
