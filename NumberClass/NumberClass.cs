@@ -11,11 +11,12 @@ namespace NumberClass
         public enum Format
         {
             Scientific,
-            Engineering
+            Engineering,
+            Alphabet
         }
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
-        public static float Version { get; } = .20f;
+        public static float Version { get; } = .22f;
         public static Format format = Format.Scientific;
 
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
@@ -29,6 +30,10 @@ namespace NumberClass
         public double mantissa;
         public double exponent;
 
+        public NumberClass() : this(0)
+        {
+        }
+        
         public NumberClass(double mantissa = 0, double exponent = 0)
         {
             (this.mantissa, this.exponent) = (mantissa, exponent);
@@ -127,8 +132,10 @@ namespace NumberClass
         }
 
         public NumberClass Sqrt() => Root(2);
+        public NumberClass Cbrt() => Root(3);
         public NumberClass Log10() => exponent + Math.Log10(mantissa);
         public NumberClass Log(NumberClass @base) => Log10() / @base.Log10();
+        public NumberClass Log2() => Log(2);
         public static NumberClass operator ++(NumberClass n) => n += One;
         public static NumberClass operator --(NumberClass n) => n -= One;
 
@@ -184,17 +191,29 @@ namespace NumberClass
             string formatExponent;
             switch (format)
             {
+                case Format.Alphabet:
+
+                    // string Letter(double n)
+                    // {
+                    //     
+                    // }
+                    //
+                    // if (useMan)
+                    // {
+                    //     
+                    // }
+                    return "WIP";
+                    break;
                 case Format.Engineering:
                     var extended = exponent % 3;
                     formatMantissa = useMan ? $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}" : "";
                     formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering);
-                    break;
+                    return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 default:
                     formatMantissa = useMan ? $"{Math.Floor(mantissa * 100) / 100}" : "";
                     formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
-                    break;
+                    return CutOff1Check($"{formatMantissa}e{formatExponent}");
             }
-            return CutOff1Check($"{formatMantissa}e{formatExponent}");
         }
     }
 }
