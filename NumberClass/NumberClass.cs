@@ -54,9 +54,9 @@ namespace NumberClass
 
             var isNeg = mantissa < 0;
             if (isNeg) mantissa = Math.Abs(mantissa);
-            var log = Math.Log10(mantissa);
-            mantissa /= Math.Pow(10, (long) log);
-            exponent += (long) log;
+            var log = (long)  Math.Log10(mantissa);
+            mantissa /= Math.Pow(10, log);
+            exponent += log;
             if (isNeg) mantissa = -mantissa;
         }
 
