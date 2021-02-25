@@ -36,6 +36,9 @@ namespace NumberClass
             Console.WriteLine($"{new NumberClass("1ee308")}");
             Console.WriteLine($"{new NumberClass("1e30") + "6e29"}");
 
+            Console.WriteLine(new NumberClass(3).Pow(4));
+            Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
+
             Console.ReadLine();
         }
     }

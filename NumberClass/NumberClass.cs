@@ -7,10 +7,10 @@ namespace NumberClass
 #pragma warning restore 660,661
     {
         // NumberClass made by SW_CreeperKing#5787
-        // Special thanks to NumberEngineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for math help
+        // Special thanks to Number Engineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for math help
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
-
+        public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
         public static NumberClass Float = new NumberClass(float.MaxValue);
         public static NumberClass Double = new NumberClass(double.MaxValue);
         public static NumberClass Long = new NumberClass(long.MaxValue);
@@ -54,7 +54,7 @@ namespace NumberClass
 
             var isNeg = mantissa < 0;
             if (isNeg) mantissa = Math.Abs(mantissa);
-            var log = (long)  Math.Log10(mantissa);
+            var log = (long) Math.Log10(mantissa);
             mantissa /= Math.Pow(10, log);
             exponent += log;
             if (isNeg) mantissa = -mantissa;
@@ -75,7 +75,6 @@ namespace NumberClass
         public static NumberClass operator -(NumberClass n1, NumberClass n2) =>
             n1 + new NumberClass(-n2.mantissa, n2.exponent);
 
-        
         public static NumberClass operator *(NumberClass n1, NumberClass n2) =>
             n1 == 0 || n2 == 0
                 ? 0
@@ -92,17 +91,6 @@ namespace NumberClass
                         ? n1
                         : new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
 
-        // probs not possible due to floating point numbers being weird
-        // public static NumberClass operator %(NumberClass n1, NumberClass n2)
-        // {
-        //     if (n1 < n2) return n1;
-        //     if (n2 >= Long || n2 >= Long) return null;
-        //     var r = n1 / n2;
-        //     Console.WriteLine($"r => {r.mantissa}e{r.exponent}");
-        //     Console.WriteLine($"{r} - {(long) r} = {r - (long) r}");
-        //     return (r - (long) r) * n2;
-        // }
-
         public NumberClass Pow(NumberClass n1)
         {
             if (n1 == 0 || this == 1) return 1;
@@ -110,12 +98,14 @@ namespace NumberClass
             if (n1.IsNeg()) return 1 / Pow(n1.Abs());
             return new NumberClass(Math.Pow(mantissa, n1.mantissa), exponent * n1.exponent);
         }
+        
+        public NumberClass Root(long @base)
+        {
+            var mod = exponent % @base;
+            return new NumberClass(Math.Pow(mantissa * Math.Pow(10, mod), 1f / @base), (exponent - mod) / @base);
+        }
 
-        // public NumberClass Root(NumberClass @base) => Pow(1 / @base); // lazy root sqrt(16) = (16)^(1/2) sadly doesn't work because of floats
-        public NumberClass Sqrt() =>
-            new NumberClass(Math.Sqrt(mantissa * (exponent % 2 == 0 ? 1 : 10)),
-                (exponent % 2 == 0 ? exponent : exponent - 1) / 2);
-
+        public NumberClass Sqrt() => Root(2);
         public NumberClass Log10() => exponent + Math.Log10(mantissa);
         public NumberClass Log(NumberClass @base) => Log10() / @base.Log10();
         public static NumberClass operator ++(NumberClass n) => n += 1;

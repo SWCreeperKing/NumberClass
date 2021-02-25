@@ -1,5 +1,5 @@
 ## NumberClass made by SW_CreeperKing#5787
-Special thanks to NumberEngineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for help with math and calculations
+Special thanks to Number Engineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for help with math and calculations
 
 ### About
 NumberClass is a solution to the problem of smaller numbers.
