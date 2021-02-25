@@ -9,6 +9,8 @@ namespace NumberClass
         // NumberClass made by SW_CreeperKing#5787
         // Special thanks to Number Engineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for math help
 
+        public static float Version { get; } = .18f;
+
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
         public static NumberClass Double = new NumberClass(double.MaxValue);
@@ -16,7 +18,7 @@ namespace NumberClass
         public static NumberClass Long = new NumberClass(long.MaxValue);
         public static NumberClass Int = new NumberClass(int.MaxValue);
         public static NumberClass One = new NumberClass(1);
-        public static NumberClass Zero = new NumberClass(0);
+        public static NumberClass Zero = new NumberClass();
 
         public double mantissa;
         public double exponent;
@@ -111,7 +113,7 @@ namespace NumberClass
             tempExpo += n.exponent + Math.Log10(n.exponent);
             return new NumberClass(mantissa, tempExpo);
         }
-        
+
         public NumberClass Root(long @base)
         {
             var mod = exponent % @base;
