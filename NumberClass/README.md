@@ -12,5 +12,8 @@ To add credit, add a link back to this repository.
 ### Limit
 NumberClass' limit is 9.99ee308 (precisely 9.99e1.79e308) or 9.99 * 10 ^ 10 ^ 308
 
+### Updates
+The Discord Announcement channel for updates is on Number Engineer's Server https://discord.gg/pFTdKgM
+
 #
 #### This class is Open Source and free to use.

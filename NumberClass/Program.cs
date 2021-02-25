@@ -40,6 +40,7 @@ namespace NumberClass
             Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
 
             NumberClass b = 2;
+            NumberClass.format = NumberClass.Format.Engineering;
             while (true)
             {
                 Console.WriteLine(b = b.Pow(2));

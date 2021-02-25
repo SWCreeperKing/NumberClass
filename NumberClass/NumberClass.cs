@@ -8,10 +8,16 @@ namespace NumberClass
     {
         // NumberClass made by SW_CreeperKing#5787
         // Special thanks to Number Engineer#9999 (developer of Incremental Unlimited 1 & 2 and Line Maze Idle) for math help
-
-        public static float Version { get; } = .18f;
+        public enum Format
+        {
+            Scientific,
+            Engineering
+        }
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
+        public static float Version { get; } = .19f;
+        public static Format format = Format.Scientific;
+
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
         public static NumberClass Double = new NumberClass(double.MaxValue);
         public static NumberClass Float = new NumberClass(float.MaxValue);
@@ -163,12 +169,22 @@ namespace NumberClass
         public NumberClass Max(NumberClass n) => n > this ? n : this;
         public NumberClass Abs() => new NumberClass(Math.Abs(mantissa), exponent);
         public bool IsNeg() => mantissa < 0;
-
-        public override string ToString() =>
-            exponent < 5
-                ? $"{mantissa * Math.Pow(10, exponent):#,##0.##}"
-                : $"{mantissa:#0.##}e{new NumberClass(exponent)}".Replace("e1e", CutOff1E ? "ee" : "e1e");
-
+        public override string ToString() => FormatNc(format);
         public string ToString(Func<double, double, string> format) => format.Invoke(mantissa, exponent);
+
+        public string FormatNc(Format format)
+        {
+            if (exponent < 5) return $"{mantissa * Math.Pow(10, exponent):#,##0.##}";
+            switch (format)
+            {
+                case Format.Engineering:
+                    var extended = exponent % 3;
+                    return
+                        $"{Math.Floor(mantissa * Math.Pow(10, extended) * 100) / 100}e{new NumberClass(exponent - extended).FormatNc(Format.Engineering)}";
+                default:
+                    return $"{Math.Floor(mantissa * 100) / 100}e{new NumberClass(exponent)}".Replace("e1e",
+                        CutOff1E ? "ee" : "e1e");
+            }
+        }
     }
 }
