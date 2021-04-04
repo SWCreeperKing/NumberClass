@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace NumberClass
@@ -23,7 +20,7 @@ namespace NumberClass
 
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
         public static int SciStaticLeng = 4;
-        public static float Version { get; } = .24f;
+        public static float Version { get; } = .25f;
         public static Format format = Format.Scientific;
 
         public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
@@ -36,15 +33,27 @@ namespace NumberClass
 
         public double mantissa;
         public double exponent;
-        // public long stage; hmm
+
+        public long stage;
+        // future:
+        // mant[stage]exp
+        // at the point of stage++ mant is usless so just keep [stage]exp
+        // when stage++ mantissa = exponent, exponent = 0, update();
+        // new potential? (need number to proof):
+        // 1 * 10 ^^^....^ 308
+        //       this ^ should extend to long.max, meaning there should be long.max Es b/t man and exp
+        // this should only cost 8 bytes more
+        // class in bytes: 16 => 24
+        // plausible problems:
+        // - rip from string, you will probs be missed (for now) 
 
         public NumberClass() : this(0)
         {
         }
 
-        public NumberClass(double mantissa = 0, double exponent = 0)
+        public NumberClass(double mantissa = 0, double exponent = 0, long stage = 0)
         {
-            (this.mantissa, this.exponent) = (mantissa, exponent);
+            (this.mantissa, this.exponent, this.stage) = (mantissa, exponent, stage);
             Update();
         }
 
@@ -81,6 +90,9 @@ namespace NumberClass
             mantissa /= Math.Pow(10, log);
             exponent += log;
             if (isNeg) mantissa = -mantissa;
+
+            // if mantissa becomes usless
+            // stage swap
         }
 
         public static NumberClass operator +(NumberClass n1, NumberClass n2)
@@ -189,11 +201,21 @@ namespace NumberClass
         public override string ToString() => FormatNc(format);
         public string ToString(Func<double, double, string> format) => format.Invoke(mantissa, exponent);
 
+        // mantissa becomes useless once exponent precision is lost
+        public bool IsMantissaUseless() => Math.Log10(exponent) >= 15;
+
         public string FormatNc(Format format)
         {
             if (exponent < 5) return $"{mantissa * Math.Pow(10, exponent):#,##0.##}";
-            var useMan = Math.Log10(exponent) < 15; // at a point the mantissa is useless
-            string CutOff1Check(string s) => s.Replace("e1e", CutOff1E ? "ee" : "e1e"); // static format should be disabled
+            var useMan = !IsMantissaUseless(); // if take mantissa or leave it
+
+            // does not catch engineering but w.e. is probs fine
+            string CutOff1Check(string s) => !CutOff1E ? s : Regex.Replace(s, @"e(1|1.0*)e", "ee");
+
+            // get proper format
+            // can be #.000 or #.### 
+            string GetFormatFromCount(int count, bool optional = true) =>
+                $"#.{string.Join("", Enumerable.Repeat(optional ? '#' : '0', count))}";
 
             string formatMantissa;
             string formatExponent;
@@ -202,18 +224,19 @@ namespace NumberClass
             {
                 case Format.Engineering:
                     var extended = exponent % 3;
-                    formatMantissa = useMan ? $"{mantissa * Math.Pow(10, extended):##0.00}" : "";
-                    formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering);
+                    formatMantissa = useMan ? $"{mantissa * Math.Pow(10, extended):##0.##}" : "";
+                    formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering)
+                        .Replace("1e", "e");
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 case Format.ScientificStatic:
                     // format to keep numclass the same leng
                     formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
-                    stringForm = $"F{SciStaticLeng}";
-                    formatMantissa = useMan ? $"{mantissa.ToString(stringForm)}" : "";
+                    formatMantissa = useMan ? $"{mantissa.ToString(GetFormatFromCount(SciStaticLeng, false))}" : "";
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 default:
-                    stringForm = $"F{(format != Format.ScientificExtended ? 2 : 6)}";
-                    formatMantissa = useMan ? $"{mantissa.ToString(stringForm)}" : "";
+                    formatMantissa = useMan
+                        ? $"{mantissa.ToString(GetFormatFromCount(format != Format.ScientificExtended ? 2 : 6))}"
+                        : "";
                     formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
             }

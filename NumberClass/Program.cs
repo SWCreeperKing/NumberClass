@@ -6,7 +6,7 @@ namespace NumberClass
     {
         static void Main(string[] args)
         {
-            NumberClass.format = NumberClass.Format.Engineering;
+            NumberClass.format = NumberClass.Format.Scientific;
             
             NumberClass v1 = 10000;
             NumberClass v2 = "1e50";
