@@ -6,6 +6,8 @@ namespace NumberClass
     {
         static void Main(string[] args)
         {
+            NumberClass.format = NumberClass.Format.Engineering;
+            
             NumberClass v1 = 10000;
             NumberClass v2 = "1e50";
             NumberClass v3 = 1;
@@ -40,11 +42,11 @@ namespace NumberClass
             Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
 
             NumberClass b = 2;
-            NumberClass.format = NumberClass.Format.ScientificStatic;
+            NumberClass.format = NumberClass.Format.Engineering;
             while (true)
             {
                 Console.WriteLine(b = b.Pow(2));
-                Console.ReadKey(true);
+                Console.ReadKey();
             }
             
             Console.ReadLine();
