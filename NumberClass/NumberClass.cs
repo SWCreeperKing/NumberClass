@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Text.RegularExpressions;
 
 namespace NumberClass
@@ -18,18 +19,18 @@ namespace NumberClass
             Engineering,
         }
 
+        public static float Version { get; } = .25f;
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
         public static int SciStaticLeng = 4;
-        public static float Version { get; } = .25f;
         public static Format format = Format.Scientific;
 
-        public static NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
-        public static NumberClass Double = new NumberClass(double.MaxValue);
-        public static NumberClass Float = new NumberClass(float.MaxValue);
-        public static NumberClass Long = new NumberClass(long.MaxValue);
-        public static NumberClass Int = new NumberClass(int.MaxValue);
-        public static NumberClass One = new NumberClass(1);
-        public static NumberClass Zero = new NumberClass();
+        public static readonly NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
+        public static readonly NumberClass Double = new NumberClass(double.MaxValue);
+        public static readonly NumberClass Float = new NumberClass(float.MaxValue);
+        public static readonly NumberClass Long = new NumberClass(long.MaxValue);
+        public static readonly NumberClass Int = new NumberClass(int.MaxValue);
+        public static readonly NumberClass One = new NumberClass(1);
+        public static readonly NumberClass Zero = new NumberClass();
 
         public double mantissa;
         public double exponent;
@@ -57,12 +58,13 @@ namespace NumberClass
             Update();
         }
 
-        public NumberClass(NumberClass nc) : this(nc.mantissa, nc.exponent)
+        public NumberClass(NumberClass nc) : this(nc.mantissa, nc.exponent, nc.stage)
         {
         }
 
         public NumberClass(string s)
         {
+            // todo: support for stage
             if ((s = s.ToLower().Replace("ee", "e1e")).Contains("e"))
             {
                 var split = s.Split('e');
@@ -91,8 +93,13 @@ namespace NumberClass
             exponent += log;
             if (isNeg) mantissa = -mantissa;
 
-            // if mantissa becomes usless
+            // if mantissa becomes useless
             // stage swap
+            if (!IsMantissaUseless()) return;
+            // stage++;
+            // mantissa = exponent;
+            // exponent = 0;
+            // Update();
         }
 
         public static NumberClass operator +(NumberClass n1, NumberClass n2)
@@ -160,16 +167,18 @@ namespace NumberClass
         public static NumberClass operator --(NumberClass n) => n -= One;
 
         public static bool operator >(NumberClass n1, NumberClass n2) =>
-            n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa;
+            n1.stage > n2.stage || n1.stage == n2.stage &&
+            (n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa);
 
         public static bool operator <(NumberClass n1, NumberClass n2) =>
-            n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa;
+            n1.stage < n2.stage || n1.stage == n2.stage &&
+            (n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa);
 
         public static bool operator ==(NumberClass n1, NumberClass n2) =>
-            n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
+            n1.stage == n2.stage && n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
 
         public static bool operator !=(NumberClass n1, NumberClass n2) =>
-            n1.mantissa != n2.mantissa || n1.exponent != n2.exponent;
+            n1.stage != n2.stage || n1.mantissa != n2.mantissa || n1.exponent != n2.exponent;
 
         public static bool operator >=(NumberClass n1, NumberClass n2) => n1 == n2 || n1 > n2;
         public static bool operator <=(NumberClass n1, NumberClass n2) => n1 == n2 || n1 < n2;
@@ -178,16 +187,20 @@ namespace NumberClass
         public static implicit operator NumberClass(string s) => new NumberClass(s);
 
         public static explicit operator int(NumberClass n) =>
-            (int) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            n.stage > 0 ? int.MaxValue : (int) (n > Int ? int.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public static explicit operator long(NumberClass n) =>
-            (long) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            n.stage > 0 ? long.MaxValue : (long) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public static explicit operator double(NumberClass n) =>
-            n > Double ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent);
+            n.stage > 0
+                ? double.MaxValue
+                : n > Double
+                    ? double.MaxValue
+                    : n.mantissa * Math.Pow(10, n.exponent);
 
         public static explicit operator float(NumberClass n) =>
-            (float) (n > Float ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            n.stage > 0 ? float.MaxValue : (float) (n > Float ? float.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public double GetRealMantissa() => exponent > 308 ? mantissa : mantissa * Math.Pow(10, exponent);
         public NumberClass Ceiling() => new NumberClass(Math.Ceiling(mantissa), exponent);
@@ -210,12 +223,15 @@ namespace NumberClass
             var useMan = !IsMantissaUseless(); // if take mantissa or leave it
 
             // does not catch engineering but w.e. is probs fine
-            string CutOff1Check(string s) => !CutOff1E ? s : Regex.Replace(s, @"e(1|1.0*)e", "ee");
+            string CutOff1Check(string s) => AddStage(!CutOff1E ? s : Regex.Replace(s, @"e(1|1.0*)e", "ee"));
 
             // get proper format
             // can be #.000 or #.### 
             string GetFormatFromCount(int count, bool optional = true) =>
                 $"#.{string.Join("", Enumerable.Repeat(optional ? '#' : '0', count))}";
+
+            // todo: get advice on how to properly format stage
+            string AddStage(string s) => stage > 0 ? $"[{stage}]{s}" : s;
 
             string formatMantissa;
             string formatExponent;
