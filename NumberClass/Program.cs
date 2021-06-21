@@ -12,6 +12,8 @@ namespace NumberClass
             NumberClass v2 = "1e50";
             NumberClass v3 = 1;
 
+            Console.WriteLine(new NumberClass(1, 0));
+
             Console.WriteLine($"{v3} {v3++} {v3}");
 
             Console.WriteLine($"{v1.Log10()} {v2.Log10()}");
