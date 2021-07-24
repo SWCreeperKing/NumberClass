@@ -6,6 +6,10 @@ NumberClass is a solution to the problem of smaller numbers.
 
 This Class is in beta, but usable.
 
+### Stuff about Unity
+- You need to remove `namespace NumberClass {}` before using
+- I still need to work on an editor script
+
 ### How to Credit
 To add credit, add a link back to this repository.
 

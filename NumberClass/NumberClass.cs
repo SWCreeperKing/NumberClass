@@ -190,6 +190,7 @@ namespace NumberClass
         public NumberClass Abs() => new NumberClass(Math.Abs(mantissa), exponent);
         public NumberClass Clone() => new NumberClass(mantissa, exponent);
         public bool IsNaN() => double.IsNaN(mantissa) || double.IsNaN(exponent);
+        public bool isNeg() => mantissa < 0;
         public override string ToString() => FormatNc(format);
         public string ToString(Func<double, double, string> format) => format.Invoke(mantissa, exponent);
 
