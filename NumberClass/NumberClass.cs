@@ -148,14 +148,21 @@ namespace NumberClass
         public static NumberClass operator ++(NumberClass n) => n += One;
         public static NumberClass operator --(NumberClass n) => n -= One;
 
+        private int BaseNegComp(NumberClass n) =>
+            !n.isNeg() && n.isNeg()
+                ? 1
+                : n.isNeg() && !n.isNeg()
+                    ? -1
+                    : 0;
+
         public static bool operator >(NumberClass n1, NumberClass n2) =>
-            n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa;
+            n1.BaseNegComp(n2) == 1 && (n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa);
 
         public static bool operator <(NumberClass n1, NumberClass n2) =>
-            n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa;
+            n1.BaseNegComp(n2) == -1 && (n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa);
 
         public static bool operator ==(NumberClass n1, NumberClass n2) =>
-            n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
+            n1.BaseNegComp(n2) != 0 ? false : n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
 
         public static bool operator !=(NumberClass n1, NumberClass n2) =>
             n1.mantissa != n2.mantissa || n1.exponent != n2.exponent;
