@@ -105,7 +105,6 @@ namespace NumberClass
             return new NumberClass(n1.mantissa * n2.mantissa, n1.exponent + n2.exponent);
         }
 
-
         public static NumberClass operator /(NumberClass n1, NumberClass n2)
         {
             if (n2 == Zero) throw new DivideByZeroException("NumberClass: Can not divide by 0");
@@ -147,16 +146,17 @@ namespace NumberClass
         public NumberClass Log2() => Log(2);
         public static NumberClass operator ++(NumberClass n) => n += One;
         public static NumberClass operator --(NumberClass n) => n -= One;
-
+        
         private int BaseNegComp(NumberClass n) =>
-            !n.isNeg() && n.isNeg()
+            !isNeg() && n.isNeg()
                 ? 1
-                : n.isNeg() && !n.isNeg()
+                : isNeg() && !n.isNeg()
                     ? -1
                     : 0;
 
         public static bool operator >(NumberClass n1, NumberClass n2) =>
-            n1.BaseNegComp(n2) == 1 && (n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa);
+            n1.BaseNegComp(n2) >= 0 &&
+            (n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa);
 
         public static bool operator <(NumberClass n1, NumberClass n2) =>
             n1.BaseNegComp(n2) == -1 && (n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa);
