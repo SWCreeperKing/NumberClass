@@ -19,12 +19,11 @@ namespace NumberClass
             Engineering,
         }
 
-        public static float Version { get; } = .25f;
+        public static readonly float Version = .26f;
         public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
         public static int SciStaticLeng = 4;
         public static Format format = Format.Scientific;
 
-        public static readonly NumberClass MaxStageValue = new NumberClass(9.99, double.MaxValue);
         public static readonly NumberClass MaxValue = new NumberClass(9.99, double.MaxValue);
         public static readonly NumberClass Double = new NumberClass(double.MaxValue);
         public static readonly NumberClass Float = new NumberClass(float.MaxValue);
@@ -33,6 +32,8 @@ namespace NumberClass
         public static readonly NumberClass One = new NumberClass(1);
         public static readonly NumberClass Zero = new NumberClass();
 
+        private static readonly Regex RegReplace = new Regex(@"e(1|1.0*)e");
+        
         public double mantissa;
         public double exponent;
 
@@ -52,7 +53,7 @@ namespace NumberClass
 
         public NumberClass(string s)
         {
-            if ((s = s.ToLower().Replace("ee", "e1e")).Contains("e"))
+            if ((s = s.ToLower().Replace("ee", "e1e")).Contains('e'))
             {
                 var split = s.Split('e');
                 if (split.Length == 2) (mantissa, exponent) = (double.Parse(split[0]), double.Parse(split[1]));
@@ -67,15 +68,12 @@ namespace NumberClass
 
         private void Update()
         {
-            if (mantissa == 0)
-            {
-                exponent = 0;
-                return;
-            }
+            mantissa = Math.Round(mantissa, 5);
 
             var isNeg = mantissa < 0;
             if (isNeg) mantissa = -mantissa;
-            var log = (long) Math.Log10(mantissa);
+            var log = (long)Math.Log10(mantissa);
+            if (log < 0) log = (long)Math.Max(0, Math.Min(log, exponent));
             mantissa /= Math.Pow(10, log);
             if (isNeg) mantissa = -mantissa;
             exponent += log;
@@ -88,30 +86,37 @@ namespace NumberClass
         public static NumberClass operator +(NumberClass n1, NumberClass n2)
         {
             var delta = Math.Abs(n1.exponent - n2.exponent);
-            if (delta > 12) return n1.Max(n2);
-            if (delta == 0) return new NumberClass(n1.mantissa + n2.mantissa, n1.exponent);
-            return n1 > n2
-                ? new NumberClass(n1.GetSignedMantissa() + n2.GetSignedMantissa() / Math.Pow(10, delta), n1.exponent)
-                : new NumberClass(n2.GetSignedMantissa() + n1.GetSignedMantissa() / Math.Pow(10, delta), n2.exponent);
+            return delta > 12
+                ? n1.Max(n2)
+                : delta == 0
+                    ? new NumberClass(n1.mantissa + n2.mantissa, n1.exponent)
+                    : n1 > n2
+                        ? new NumberClass(n1.GetSignedMantissa() + n2.GetSignedMantissa() / Math.Pow(10, delta),
+                            n1.exponent)
+                        : new NumberClass(n2.GetSignedMantissa() + n1.GetSignedMantissa() / Math.Pow(10, delta),
+                            n2.exponent);
         }
 
         public static NumberClass operator -(NumberClass n1, NumberClass n2) =>
             n1 + new NumberClass(-n2.mantissa, n2.exponent);
 
-        public static NumberClass operator *(NumberClass n1, NumberClass n2)
-        {
-            if (n1 == Zero || n2 == Zero) return Zero;
-            if (n1 == One || n2 == One) return n1.Max(n2);
-            return new NumberClass(n1.mantissa * n2.mantissa, n1.exponent + n2.exponent);
-        }
+        public static NumberClass operator *(NumberClass n1, NumberClass n2) =>
+            n1 == Zero || n2 == Zero
+                ? Zero
+                : n1 == One || n2 == One
+                    ? n1 == One
+                        ? n2
+                        : n1
+                    : new NumberClass(n1.mantissa * n2.mantissa, n1.exponent + n2.exponent);
 
-        public static NumberClass operator /(NumberClass n1, NumberClass n2)
-        {
-            if (n2 == Zero) throw new DivideByZeroException("NumberClass: Can not divide by 0");
-            if (n1 == Zero) return Zero;
-            if (n2 == One) return n1;
-            return new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
-        }
+        public static NumberClass operator /(NumberClass n1, NumberClass n2) =>
+            n2 == Zero
+                ? throw new DivideByZeroException("NumberClass: Can not divide by 0")
+                : n1 == Zero
+                    ? Zero
+                    : n2 == One
+                        ? n1
+                        : new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
 
         public NumberClass Pow(NumberClass n)
         {
@@ -146,7 +151,7 @@ namespace NumberClass
         public NumberClass Log2() => Log(2);
         public static NumberClass operator ++(NumberClass n) => n += One;
         public static NumberClass operator --(NumberClass n) => n -= One;
-        
+
         private int BaseNegComp(NumberClass n) =>
             !isNeg() && n.isNeg()
                 ? 1
@@ -159,7 +164,8 @@ namespace NumberClass
             (n1.exponent > n2.exponent || n1.exponent == n2.exponent && n1.mantissa > n2.mantissa);
 
         public static bool operator <(NumberClass n1, NumberClass n2) =>
-            n1.BaseNegComp(n2) <= 0 && (n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa);
+            n1.BaseNegComp(n2) <= 0 &&
+            (n1.exponent < n2.exponent || n1.exponent == n2.exponent && n1.mantissa < n2.mantissa);
 
         public static bool operator ==(NumberClass n1, NumberClass n2) =>
             n1.BaseNegComp(n2) != 0 ? false : n1.mantissa == n2.mantissa && n1.exponent == n2.exponent;
@@ -174,10 +180,10 @@ namespace NumberClass
         public static implicit operator NumberClass(string s) => new NumberClass(s);
 
         public static explicit operator int(NumberClass n) =>
-            (int) (n > Int ? int.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            (int)(n > Int ? int.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public static explicit operator long(NumberClass n) =>
-            (long) (n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            (long)(n > Long ? long.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public static explicit operator double(NumberClass n) =>
             n > Double
@@ -185,7 +191,7 @@ namespace NumberClass
                 : n.mantissa * Math.Pow(10, n.exponent);
 
         public static explicit operator float(NumberClass n) =>
-            (float) (n > Float ? float.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
+            (float)(n > Float ? float.MaxValue : n.mantissa * Math.Pow(10, n.exponent));
 
         public double GetRealMantissa() => exponent > 308 ? mantissa : mantissa * Math.Pow(10, exponent);
         public double GetSignedMantissa() => mantissa;
@@ -210,7 +216,7 @@ namespace NumberClass
             var useMan = !IsMantissaUseless(); // if take mantissa or leave it
 
             // does not catch engineering but w.e. is probs fine
-            string CutOff1Check(string s) => !CutOff1E ? s : Regex.Replace(s, @"e(1|1.0*)e", "ee");
+            string CutOff1Check(string s) => !CutOff1E ? s : RegReplace.Replace(s, "ee");
 
             // get proper format
             // can be #.000 or #.### 
@@ -223,14 +229,14 @@ namespace NumberClass
             {
                 case Format.Engineering:
                     var extended = exponent % 3;
-                    formatMantissa = useMan ? $"{mantissa * Math.Pow(10, extended):##0.00}" : "";
+                    formatMantissa = useMan ? $"{mantissa * Math.Pow(10, extended):##0.00#}" : "";
                     formatExponent = new NumberClass(exponent - extended).FormatNc(Format.Engineering)
                         .Replace("1e", "e");
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 case Format.ScientificStatic:
                     // format to keep numclass the same leng
                     formatExponent = new NumberClass(exponent).FormatNc(Format.Scientific);
-                    formatMantissa = useMan ? $"{mantissa.ToString(GetFormatFromCount(SciStaticLeng, false))}" : "";
+                    formatMantissa = useMan ? $"{mantissa.ToString(GetFormatFromCount(SciStaticLeng))}" : "";
                     return CutOff1Check($"{formatMantissa}e{formatExponent}");
                 default:
                     formatMantissa = useMan
