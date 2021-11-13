@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace NumberClass
 {
-    [CustomPropertyDrawer(typeof(BigDouble))]
+    [CustomPropertyDrawer(typeof(NumberClass))]
     public class NumberClassDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
