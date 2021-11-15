@@ -4,6 +4,15 @@
         <TargetFramework>net5.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>7.3</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>SW_CreeperKing</Authors>
+        <Description>A Big number class that extends to 9.99ee308 (9.99 * 10 ^ (1 * 10 ^ 308)) (but for unity)</Description>
+        <PackageProjectUrl>https://github.com/SWCreeperKing/NumberClass</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/SWCreeperKing/NumberClass</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>Number NumberClass BigNumberUnity</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <License>https://github.com/SWCreeperKing/NumberClass/blob/master/LICENSE</License>
     </PropertyGroup>
 
 </Project>
