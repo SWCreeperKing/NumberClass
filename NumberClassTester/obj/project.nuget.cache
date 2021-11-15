@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "QXZ2JV/WaDXFz4tlLzdx/wZMJQMVqySogIbWe074/+v05QAs18YX8FSKuP7nEzjiV7VujQxM+Gs1BlG8rO0TjQ==",
+  "success": true,
+  "projectFilePath": "E:\\coding projects\\C#\\NumberClass\\NumberClassTester\\NumberClassTester.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\pizza\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.12\\microsoft.netcore.app.host.win-x64.5.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}

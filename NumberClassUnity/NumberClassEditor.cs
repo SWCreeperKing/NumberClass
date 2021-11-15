@@ -5,7 +5,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace NumberClass
+namespace NumberClassUnity
 {
     [CustomPropertyDrawer(typeof(NumberClass))]
     public class NumberClassDrawer : PropertyDrawer
