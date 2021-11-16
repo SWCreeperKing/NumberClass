@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <Nullable>enable</Nullable>
         <LangVersion>7.3</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>SW_CreeperKing</Authors>
@@ -13,6 +11,6 @@
         <PackageTags>Number NumberClass BigNumberUnity</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <License>https://github.com/SWCreeperKing/NumberClass/blob/master/LICENSE</License>
+        <PackageVersion>1.1.0</PackageVersion>
     </PropertyGroup>
-
 </Project>
