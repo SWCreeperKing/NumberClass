@@ -11,6 +11,7 @@
         <PackageTags>Number NumberClass BigNumberUnity</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <License>https://github.com/SWCreeperKing/NumberClass/blob/master/LICENSE</License>
-        <PackageVersion>1.1.0</PackageVersion>
+        <PackageVersion>1.1.1</PackageVersion>
+        <PackageReleaseNotes>Fixed some odd bugs with update (hopefully)</PackageReleaseNotes>
     </PropertyGroup>
 </Project>

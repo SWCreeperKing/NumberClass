@@ -17,7 +17,7 @@ public class NumberClass
         Engineering,
     }
 
-    public static readonly float Version = .26f;
+    public static readonly float Version = .27f;
     public static bool CutOff1E = true; // format; 1e1e30 => 1ee30 
     public static int SciStaticLeng = 4;
     public static Format format = Format.Scientific;
@@ -66,6 +66,7 @@ public class NumberClass
 
     private void Update()
     {
+        if (mantissa == 0) exponent = 0;
         mantissa = Math.Round(mantissa, 5);
 
         var isNeg = mantissa < 0;
@@ -76,9 +77,11 @@ public class NumberClass
         if (isNeg) mantissa = -mantissa;
         exponent += log;
 
-        if (mantissa <= 0 || mantissa >= 1 || exponent < 1) return;
-        exponent--;
-        mantissa *= 10;
+        while (mantissa > 0 && mantissa < 1 && exponent > 1)
+        {
+            exponent--;
+            mantissa *= 10;
+        }
     }
 
     public static NumberClass operator +(NumberClass n1, NumberClass n2)

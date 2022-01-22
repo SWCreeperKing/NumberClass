@@ -15,7 +15,7 @@
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet"
         ],
         "configFilePaths": [
           "C:\\Users\\pizza\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -77,7 +77,7 @@
       }
     },
     "E:\\coding projects\\C#\\NumberClass\\NumberClass\\NumberClass.csproj": {
-      "version": "1.0.0",
+      "version": "1.1.1",
       "restore": {
         "projectUniqueName": "E:\\coding projects\\C#\\NumberClass\\NumberClass\\NumberClass.csproj",
         "projectName": "NumberClass",
@@ -87,7 +87,7 @@
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet"
         ],
         "configFilePaths": [
           "C:\\Users\\pizza\\AppData\\Roaming\\NuGet\\NuGet.Config",

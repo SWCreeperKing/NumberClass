@@ -4,16 +4,24 @@ class Program
 {
     static void Main(string[] args)
     {
+        NumberClass n1 = 6;
+        NumberClass n2 = null;
+        
+        if (n1 is null) Console.WriteLine("n1 is null");
+        if (n2 is null) Console.WriteLine("n2 is null");
+        if (n1 is not null) Console.WriteLine("n1 is not null");
+        if (n2 is not null) Console.WriteLine("n2 is not null");
+        
         NumberClass.format = NumberClass.Format.Scientific;
-
+        
         NumberClass v1 = 10000;
         NumberClass v2 = "1e50";
         NumberClass v3 = 1;
-
+        
         Console.WriteLine(new NumberClass(1, 0));
-
+        
         Console.WriteLine($"{v3} {v3++} {v3}");
-
+        
         Console.WriteLine($"{v1.Log10()} {v2.Log10()}");
         Console.WriteLine($"Log{v1} {v2} = {v2.Log(v1)}");
         Console.WriteLine($"{v1} * {v2} = {v1 * v2}");
@@ -27,28 +35,33 @@ class Program
         Console.WriteLine($"{v1} < {v2} = {v1 < v2}");
         Console.WriteLine($"{v1} != {v2} = {v1 != v2}");
         Console.WriteLine($"{v1} != {v2} = {v1 != v2}");
-
+        
         Console.WriteLine($"{new NumberClass(16).Sqrt()}");
         Console.WriteLine($"{new NumberClass(160).Sqrt()}");
         Console.WriteLine($"{new NumberClass(1600).Sqrt()}");
         Console.WriteLine($"{new NumberClass(16000).Sqrt()}");
-
+        
         Console.WriteLine($"{new NumberClass("1e30")}");
         Console.WriteLine($"{new NumberClass("1ee30")}");
         Console.WriteLine($"{new NumberClass("1ee308")}");
         Console.WriteLine($"{new NumberClass("1e30") + "6e29"}");
-
+        
         Console.WriteLine(new NumberClass(3).Pow(4));
         Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
-
+        
         NumberClass b = 2;
+        
+        var n = new NumberClass(1e12) - new NumberClass(9.2e11);
+        Console.WriteLine(n);
+        
         NumberClass.format = NumberClass.Format.Engineering;
+        
+        
         while (true)
         {
             Console.WriteLine(b = b.Pow(2));
             Console.ReadKey();
         }
-
         Console.ReadLine();
     }
 }
