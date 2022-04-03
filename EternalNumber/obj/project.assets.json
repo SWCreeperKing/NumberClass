@@ -13,13 +13,13 @@
     "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet": {}
   },
   "project": {
-    "version": "1.1.1",
+    "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\coding projects\\C#\\NumberClass\\NumberClassUnity\\NumberClassUnity.csproj",
-      "projectName": "NumberClassUnity",
-      "projectPath": "E:\\coding projects\\C#\\NumberClass\\NumberClassUnity\\NumberClassUnity.csproj",
+      "projectUniqueName": "E:\\coding projects\\C#\\NumberClass\\EternalNumber\\EternalNumber.csproj",
+      "projectName": "EternalNumber",
+      "projectPath": "E:\\coding projects\\C#\\NumberClass\\EternalNumber\\EternalNumber.csproj",
       "packagesPath": "C:\\Users\\pizza\\.nuget\\packages\\",
-      "outputPath": "E:\\coding projects\\C#\\NumberClass\\NumberClassUnity\\obj\\",
+      "outputPath": "E:\\coding projects\\C#\\NumberClass\\EternalNumber\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -70,7 +70,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.201\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

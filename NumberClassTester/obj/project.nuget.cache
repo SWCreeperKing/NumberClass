@@ -1,10 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "QXZ2JV/WaDXFz4tlLzdx/wZMJQMVqySogIbWe074/+v05QAs18YX8FSKuP7nEzjiV7VujQxM+Gs1BlG8rO0TjQ==",
+  "dgSpecHash": "1IAccUwvGZDgtC7N9fWoi2DUwwxkyhiHYH8P1g8mYOKhBGDzx0Qz6XgVj5JTBqhxlr2CCaeVnWT4fnJb0pXdzA==",
   "success": true,
   "projectFilePath": "E:\\coding projects\\C#\\NumberClass\\NumberClassTester\\NumberClassTester.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\pizza\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.12\\microsoft.netcore.app.host.win-x64.5.0.12.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }

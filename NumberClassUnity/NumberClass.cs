@@ -27,6 +27,7 @@ public class NumberClass
     public static readonly NumberClass Float = new NumberClass(float.MaxValue);
     public static readonly NumberClass Long = new NumberClass(long.MaxValue);
     public static readonly NumberClass Int = new NumberClass(int.MaxValue);
+    public static readonly NumberClass E = new NumberClass(Math.E);
     public static readonly NumberClass One = new NumberClass(1);
     public static readonly NumberClass Zero = new NumberClass();
 
@@ -148,6 +149,7 @@ public class NumberClass
     public NumberClass Sqrt() => Root(2);
     public NumberClass Cbrt() => Root(3);
     public NumberClass Log10() => exponent + Math.Log10(mantissa);
+    public NumberClass Log() => Log(E);
     public NumberClass Log(NumberClass @base) => this == Zero ? Zero : Log10() / @base.Log10();
     public NumberClass Log2() => Log(2);
     public static NumberClass operator ++(NumberClass n) => n += One;
