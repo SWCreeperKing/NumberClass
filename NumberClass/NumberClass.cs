@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -70,7 +69,7 @@ public struct NumberClass
         man /= Math.Pow(10, log);
         if (isNeg) man = -man;
         exp += log;
-
+        
         return (man, exp);
     }
 
@@ -154,7 +153,7 @@ public struct NumberClass
         if (delta == 0) return new NumberClass(n1.mantissa - n2.mantissa, n1.exponent);
 
         if (n1 > n2) return new NumberClass(n1.mantissa - n2.mantissa / Math.Pow(10, delta), n1.exponent);
-        return new NumberClass(n2.mantissa - n1.mantissa / Math.Pow(10, delta), n2.exponent);
+        return new NumberClass(n1.mantissa / Math.Pow(10, delta) - n2.mantissa, n2.exponent);
     }
 
     public static NumberClass operator *(NumberClass n1, NumberClass n2)

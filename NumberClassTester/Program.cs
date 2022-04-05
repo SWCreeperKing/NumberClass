@@ -59,6 +59,11 @@ class Program
             Assert.True(sub1 == sub1Res);
             Assert.True(sub2 == sub2Res);
             Assert.True(NumberClass.One / 2 == .5f);
+            var sub3n1 = new NumberClass(2.2561784573198107, 6);
+            var sub3n2 = new NumberClass(1.9603208295529388, 7);
+            var sub3 = sub3n1 - sub3n2;
+            var sub3Res = new NumberClass(-1.73470298382095773, 7);
+            Assert.True(sub3 == sub3Res);
         }
 
         [Test]
