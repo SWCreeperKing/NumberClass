@@ -51,6 +51,20 @@
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
+          "dependencies": {
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.1.0, )"
+            },
+            "NUnit": {
+              "target": "Package",
+              "version": "[3.13.3, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -71,7 +85,7 @@
       }
     },
     "E:\\coding projects\\C#\\NumberClass\\NumberClass\\NumberClass.csproj": {
-      "version": "2.0.0",
+      "version": "2.1.2",
       "restore": {
         "projectUniqueName": "E:\\coding projects\\C#\\NumberClass\\NumberClass\\NumberClass.csproj",
         "projectName": "NumberClass",

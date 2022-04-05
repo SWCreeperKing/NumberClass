@@ -1,69 +1,116 @@
-﻿using System;
+﻿using NUnit.Framework;
 
 class Program
 {
-    static void Main(string[] args)
+    [TestFixture]
+    public class TestClass
     {
-        NumberClass rnc = new();
-        // return;
-        NumberClass n1 = 6;
-        NumberClass n2 = null;
-        
-        if (n1 is null) Console.WriteLine("n1 is null");
-        if (n2 is null) Console.WriteLine("n2 is null");
-        if (n1 is not null) Console.WriteLine("n1 is not null");
-        if (n2 is not null) Console.WriteLine("n2 is not null");
+        public NumberClass n1;
+        public NumberClass n2;
 
-        NumberClass v1 = 10000;
-        NumberClass v2 = "1e50";
-        NumberClass v3 = 1;
-        
-        Console.WriteLine(new NumberClass(1));
-        
-        Console.WriteLine($"{v3} {v3++} {v3} {++v3}");
-        
-        Console.WriteLine($"{v1.Log10()} {v2.Log10()}");
-        Console.WriteLine($"Log{v1} {v2} = {v2.Log(v1)}");
-        Console.WriteLine($"Ln {v2} = {v2.Log().GetRealMantissa()}");
-        Console.WriteLine($"{v1} * {v2} = {v1 * v2}");
-        Console.WriteLine($"{v1} + {v2} = {v1 + v2}");
-        Console.WriteLine($"{v1} - {v2} = {v1 - v2}");
-        Console.WriteLine($"{v2} / {v1} = {v2 / v1}");
-        Console.WriteLine($"\"1e50\" / {v1} = {"1e50" / v1}");
-        Console.WriteLine($"1 / 2 = {new NumberClass(1) / 2}");
-        Console.WriteLine($"{v1} ^ {v2} = {v1.Pow(v2)}");
-        Console.WriteLine($"{v1} > {v2} = {v1 > v2}");
-        Console.WriteLine($"{v1} < {v2} = {v1 < v2}");
-        Console.WriteLine($"{v1} != {v2} = {v1 != v2}");
-        Console.WriteLine($"{v1} == {v2} = {v1 == v2}");
-        
-        // Console.WriteLine($"{new NumberClass(16).Sqrt()}");
-        // Console.WriteLine($"{new NumberClass(160).Sqrt()}");
-        // Console.WriteLine($"{new NumberClass(1600).Sqrt()}");
-        // Console.WriteLine($"{new NumberClass(16000).Sqrt()}");
+        [SetUp]
+        public void Setup()
+        {
+            n1 = 10000;
+            n2 = "1e50";
+        }
 
-        Console.WriteLine($"{new NumberClass("1e30")}");
-        Console.WriteLine($"{new NumberClass("1ee30")}");
-        Console.WriteLine($"{new NumberClass("1ee308")}");
-        Console.WriteLine($"{new NumberClass("1e30") + "6e29"}");
+        [Test]
+        public void NullTest()
+        {
+            NumberClass? nc1 = 6;
+            NumberClass? nc2 = null;
+            Assert.IsNotNull(nc1);
+            Assert.IsNull(nc2);
+        }
+
+        [Test]
+        public void PlusPlus()
+        {
+            NumberClass n = 1;
+            Assert.True(n == 1);
+            n++;
+            Assert.True(n == 2 && ++n == 3);
+        }
+
+        [Test]
+        public void LogTest()
+        {
+            Assert.True(n1.Log10() == 4 && n2.Log10() == 50 && n2.Log(n1) == 12.5);
+            Assert.True(n2.Log().GetRealMantissa() == 115.12925464970229);
+        }
+
+        [Test]
+        public void AddTest()
+        {
+            Assert.True(n1 + n2 == new NumberClass(1, 50));
+            var preAdd = new NumberClass("1e30") + "6e29";
+            var addRes = new NumberClass(1.6f, 30);
+            Assert.True(preAdd == addRes);
+        }
+
+        [Test]
+        public void SubTest()
+        {
+            var sub1 = n1 - n2;
+            var sub1Res = new NumberClass(-1, 50);
+            var sub2 = n2 - n1;
+            var sub2Res = new NumberClass(1, 50);
+            Assert.True(sub1 == sub1Res);
+            Assert.True(sub2 == sub2Res);
+            Assert.True(NumberClass.One / 2 == .5f);
+        }
+
+        [Test]
+        public void MultiTest()
+        {
+            Assert.True(n1 * n2 == new NumberClass(1, 54));
+        }
+
+        [Test]
+        public void DivTest()
+        {
+            Assert.True(n1 / n2 == new NumberClass(1, -46));
+            Assert.True(n2 / n1 == new NumberClass(1, 46));
+        }
+
+        [Test]
+        public void PowerTest()
+        {
+            Assert.True(n1.Pow(n2) == new NumberClass(1, 4e50));
+            Assert.True(n2.Pow(n1) == new NumberClass(1, 50e4));
+        }
+
+        [Test]
+        public void CompareTest()
+        {
+            Assert.False(n1 > n2);
+            Assert.True(n1 < n2);
+            Assert.True(n1 != n2);
+            Assert.False(n1 == n2);
+        }
+
+        [Test]
+        public void RootTest()
+        {
+            Assert.True(new NumberClass(3).Pow(4).Root(4) == 3);
+        }
         
-        Console.WriteLine(new NumberClass(3).Pow(4));
-        // Console.WriteLine(new NumberClass(3).Pow(4).Root(4));
-        
+        /*
         NumberClass b = 2;
-        
+
         var n = new NumberClass(1e12) - new NumberClass(9.2e11);
         Console.WriteLine(n);
 
         // NumberClass.formatter = Engineering.Name;
         SciNotation.beforeSciCut = 8;
         Engineering.beforeSciCut = 8;
-        
-        while (true)
-        {
-            Console.WriteLine(b = b.Pow(2));
-            Console.ReadKey(true);
-        }
-        Console.ReadLine();
+
+        var convert = JsonConvert.SerializeObject(new NumberClass(5.342, 3));
+        Console.WriteLine("e");
+        Console.WriteLine(convert);
+        Console.WriteLine(JsonConvert.DeserializeObject<NumberClass>(convert));
+        Console.WriteLine("E");
+         */
     }
 }
