@@ -6,6 +6,7 @@ namespace NumberClassTester.newer_legacy
     public class NumberClass
     {
         public static readonly double W = Math.Exp(Math.Exp(-1.0));
+        public static readonly NumberClass E = new(Math.E);
         public static readonly NumberClass Two = new(2);
         public static readonly NumberClass NegativeOne = new(-1);
         public static readonly NumberClass Zero = new();
@@ -99,7 +100,7 @@ namespace NumberClassTester.newer_legacy
             }
 
             if (shift == 0) return;
-            
+
             mantissa *= doubles[(int) (308 - shift)];
             switch (expHeight)
             {
@@ -636,6 +637,8 @@ namespace NumberClassTester.newer_legacy
             (mantissa, exponent, expHeight) = (this.mantissa, this.exponent, this.expHeight);
         }
 
+        public double GetRealMantissa() => exponent > 308 ? mantissa : mantissa * Math.Pow(10, exponent);
+
         #region Arithmetic Operators
 
         public static NumberClass operator ++(NumberClass nc) => nc += 1;
@@ -929,6 +932,9 @@ namespace NumberClassTester.newer_legacy
 
         public NumberClass LogX(NumberClass x) => One > this ? new NumberClass() : Log10() / x.Log10();
 
+        public NumberClass Log() => LogX(E);
+        public NumberClass Log(NumberClass x) => LogX(x);
+
         public NumberClass Floor()
         {
             return this > MaxInt ? this : new NumberClass(Math.Floor(mantissa * Math.Pow(10, exponent)));
@@ -1037,8 +1043,6 @@ namespace NumberClassTester.newer_legacy
                 ? nc1.exponent == nc2.exponent
                     ? nc1.mantissa > nc2.mantissa
                     : nc1.exponent > nc2.exponent
-                        ? nc2.mantissa == 0
-                        : nc1.mantissa != 0
                 : nc1.expHeight > nc2.expHeight;
         }
 
@@ -1047,15 +1051,13 @@ namespace NumberClassTester.newer_legacy
             return nc1.expHeight == nc2.expHeight
                 ? nc1.exponent == nc2.exponent
                     ? nc1.mantissa >= nc2.mantissa
-                    : nc2.exponent > nc1.exponent
-                        ? nc2.mantissa == 0
-                        : nc1.mantissa != 0
+                    : nc1.exponent >= nc2.exponent
                 : nc1.expHeight > nc2.expHeight;
         }
 
         public static bool operator ==(NumberClass nc1, NumberClass nc2)
         {
-            return (nc1!.mantissa, nc1.exponent, nc1.expHeight) == (nc2!.mantissa, nc2.exponent, nc2.expHeight);
+            return (nc1.mantissa, nc1.exponent, nc1.expHeight) == (nc2.mantissa, nc2.exponent, nc2.expHeight);
         }
 
         public static bool operator <(NumberClass nc1, NumberClass nc2) => !(nc1 >= nc2);

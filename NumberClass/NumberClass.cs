@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -37,7 +38,11 @@ public struct NumberClass
     public NumberClass(string s)
     {
         double man, exp = 0;
-        double Parse(Span<char> text) => text.ToString() == "" ? 1 : double.Parse(text.ToString());
+
+        double Parse(Span<char> text)
+        {
+            return text.ToString() == "" ? 1 : double.Parse(text.ToString(), CultureInfo.InvariantCulture);
+        }
 
         var span = new Span<char>(s.ToLower().ToCharArray());
         if (span.Contains('e'))
@@ -53,7 +58,7 @@ public struct NumberClass
             }
             else (man, exp) = (Parse(span[..first]), Parse(span[(first + 1)..]));
         }
-        else man = double.Parse(s);
+        else man = double.Parse(s, CultureInfo.InvariantCulture);
 
         (mantissa, exponent) = Update(man, exp);
     }
@@ -69,7 +74,7 @@ public struct NumberClass
         man /= Math.Pow(10, log);
         if (isNeg) man = -man;
         exp += log;
-        
+
         return (man, exp);
     }
 
@@ -246,7 +251,6 @@ public struct NumberClass
 
 public abstract class Formatter
 {
-    public readonly StringBuilder sb = new();
     public static bool cutOff1E = true; // format; 1e1e30 => 1ee30
 
     // get proper format can be 0.000 or 0.### 
@@ -255,21 +259,8 @@ public abstract class Formatter
         return $"0.{string.Join("", Enumerable.Repeat(optional ? '#' : '0', count))}";
     }
 
-    public string Format(NumberClass nc)
-    {
-        sb.Clear();
-        try
-        {
-            return FormatRaw(nc).ToString();
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            // odd error: investigate fully later
-            return Format(nc);
-        }
-    }
-
-    protected abstract StringBuilder FormatRaw(NumberClass nc);
+    public string Format(NumberClass nc) => FormatRaw(nc);
+    protected abstract string FormatRaw(NumberClass nc);
 }
 
 public class SciNotation : Formatter
@@ -279,22 +270,19 @@ public class SciNotation : Formatter
     public static int beforeSciCutExponent = 3;
     public static char e = 'e';
 
-    protected override StringBuilder FormatRaw(NumberClass nc)
+    protected override string FormatRaw(NumberClass nc)
     {
-        if (nc.exponent <= beforeSciCut) return sb.Append($"{nc.GetRealMantissa():###,##0.##}");
+        if (nc.exponent <= beforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
         var expExp = Math.Floor(Math.Log10(nc.exponent));
 
-        if (expExp <= beforeSciCutExponent)
-        {
-            return sb.Append($"{nc.mantissa:0.##}{e}{nc.exponent:###,###}");
-        }
+        if (expExp <= beforeSciCutExponent) return $"{nc.mantissa:0.##}{e}{nc.exponent:###,###}";
 
         var expMan = nc.exponent / Math.Pow(10, expExp);
-        if (expExp <= 15) sb.Append($"{nc.mantissa:0.00}");
-        sb.Append(e);
 
-        if (cutOff1E && expMan == 1) return sb.Append($"{e}{expExp:###,###}");
-        return sb.Append($"{expMan:0.00}{e}{expExp:###,###}");
+        string GetMantissaIfReasonable() => expExp <= 15 ? $"{nc.mantissa:0.00}" : "";
+
+        if (cutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{e}{e}{expExp:###,###}";
+        return $"{GetMantissaIfReasonable()}{e}{expMan:0.00}{e}{expExp:###,###}";
     }
 }
 
@@ -305,27 +293,24 @@ public class Engineering : Formatter
     public static int beforeSciCutExponent = 3;
     public static char e = 'e';
 
-    protected override StringBuilder FormatRaw(NumberClass nc)
+    protected override string FormatRaw(NumberClass nc)
     {
-        if (nc.exponent <= beforeSciCut) return sb.Append($"{nc.GetRealMantissa():###,##0.##}");
+        if (nc.exponent <= beforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
         var expExp = Math.Floor(Math.Log10(nc.exponent));
 
         var ext = nc.exponent % 3;
         var nMan = nc.mantissa * Math.Pow(10, ext);
         var nExp = nc.exponent - ext;
-        if (expExp <= beforeSciCutExponent)
-        {
-            return sb.Append($"{nMan:##0.##}{e}{nExp:###,###}");
-        }
+        if (expExp <= beforeSciCutExponent) return $"{nMan:##0.##}{e}{nExp:###,###}";
 
         var expMan = nExp / Math.Pow(10, expExp);
-        if (expExp <= 15) sb.Append($"{nMan:##0.00}");
-        sb.Append(e);
+
+        string GetMantissaIfReasonable() => expExp <= 15 ? $"{nMan:0.00}" : "";
 
         var expExt = expExp % 3;
         var nExpMan = expMan * Math.Pow(10, expExt);
         var nExpExp = expExp - expExt;
-        if (cutOff1E && expMan == 1) return sb.Append($"{e}{nExpExp:###,###}");
-        return sb.Append($"{nExpMan:##0.00}{e}{nExpExp:###,###}");
+        if (cutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{e}{e}{nExpExp:###,###}";
+        return $"{GetMantissaIfReasonable()}{e}{nExpMan:##0.00}{e}{nExpExp:###,###}";
     }
 }
