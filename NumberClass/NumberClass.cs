@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
-public struct NumberClass
+public readonly struct NumberClass
 {
+    public const double MagnitudeLimiter = 1e100;
+
+    public static readonly NumberClass MaxMagnitudeValue = new(9.99, double.MaxValue, UInt128.MaxValue);
     public static readonly NumberClass MaxValue = new(9.99, double.MaxValue);
     public static readonly NumberClass Double = new(double.MaxValue);
     public static readonly NumberClass Float = new(float.MaxValue);
@@ -15,26 +17,27 @@ public struct NumberClass
     public static readonly NumberClass One = new(1);
     public static readonly NumberClass Zero = new();
 
-    public static readonly float Version = 1f;
+    public static string Formatter = SciNotation.Name;
 
-    public static string formatter = SciNotation.Name;
-
-    public static Dictionary<string, Formatter> formats = new()
+    public static Dictionary<string, Formatter> Formats = new()
     {
         { SciNotation.Name, new SciNotation() },
         { Engineering.Name, new Engineering() }
     };
 
-    public double mantissa;
-    public double exponent;
+    public double Mantissa { get; init; }
+    public double Exponent { get; init; }
+    public UInt128 Magnitude { get; init; }
 
-    public NumberClass(double mantissa = 0, double exponent = 0)
+    public NumberClass(double mantissa = 0, double exponent = 0, UInt128 magnitude = default)
     {
-        (this.mantissa, this.exponent) = Update(mantissa, exponent);
+        (Mantissa, Exponent, Magnitude) = Update(mantissa, exponent, magnitude);
     }
 
-    public NumberClass(NumberClass nc) => (mantissa, exponent) = Update(nc.mantissa, nc.exponent);
+    public NumberClass(NumberClass nc)
+        => (Mantissa, Exponent, Magnitude) = Update(nc.Mantissa, nc.Exponent, nc.Magnitude);
 
+    // todo rank functionality later
     public NumberClass(string s)
     {
         double man, exp = 0;
@@ -60,12 +63,12 @@ public struct NumberClass
         }
         else man = double.Parse(s, CultureInfo.InvariantCulture);
 
-        (mantissa, exponent) = Update(man, exp);
+        (Mantissa, Exponent, Magnitude) = Update(man, exp);
     }
 
-    private static (double man, double exp) Update(double man = 0, double exp = 0)
+    private static (double man, double exp, UInt128) Update(double man = 0, double exp = 0, UInt128 magnitude = default)
     {
-        if (man == 0) return (0, 0);
+        if (man == 0) return (0, 0, 0);
 
         var isNeg = man < 0;
         if (isNeg) man = -man;
@@ -75,97 +78,116 @@ public struct NumberClass
         if (isNeg) man = -man;
         exp += log;
 
-        return (man, exp);
+        if (exp < MagnitudeLimiter || magnitude == UInt128.MaxValue) return (man, exp, magnitude);
+        return (man, Math.Log10(exp), magnitude + 1);
     }
 
-    public bool IsNaN() => double.IsNaN(mantissa) || double.IsNaN(exponent);
-    public bool IsNeg() => mantissa < 0;
-    public double GetRealMantissa() => exponent > 308 ? mantissa : mantissa * Math.Pow(10, exponent);
+    public bool IsNaN() => double.IsNaN(Mantissa) || double.IsNaN(Exponent);
+    public bool IsNeg() => Mantissa < 0;
+    public double GetRealMantissa() => Magnitude > 0 || Exponent > 308 ? Mantissa : Mantissa * Math.Pow(10, Exponent);
     public NumberClass Max(NumberClass nc) => nc > this ? nc : this;
     public NumberClass Min(NumberClass nc) => nc < this ? nc : this;
-    public NumberClass Ceiling() => new(Math.Ceiling(mantissa), exponent);
-    public NumberClass Floor() => new(Math.Floor(mantissa), exponent);
-    public NumberClass Round() => new(Math.Round(mantissa), exponent);
-    public NumberClass Abs() => new(Math.Abs(mantissa), exponent);
+    public NumberClass Negate() => this with { Mantissa = -Mantissa };
+    public NumberClass Ceiling() => this with { Mantissa = Math.Ceiling(Mantissa) };
+    public NumberClass Floor() => this with { Mantissa = Math.Floor(Mantissa) };
+    public NumberClass Round() => this with { Mantissa = Math.Round(Mantissa) };
+    public NumberClass Abs() => this with { Mantissa = Math.Abs(Mantissa) };
+
+    public double ExponentialDelta(NumberClass nc)
+        => MagnitudeDelta(nc) switch
+        {
+            0 => Math.Abs(Exponent - nc.Exponent),
+            1 => MinMaxOp(nc, (min, max, _)
+                => Math.Abs(min.Exponent - Math.Pow(10, max.Exponent))),
+            _ => 16
+        };
+
+    public UInt128 MaxMagnitude(NumberClass nc) => nc.Magnitude > Magnitude ? nc.Magnitude : Magnitude;
+    public UInt128 MinMagnitude(NumberClass nc) => nc.Magnitude < Magnitude ? nc.Magnitude : Magnitude;
+
+    public double MagnitudeDelta(NumberClass nc)
+        => (double) (Magnitude > nc.Magnitude ? Magnitude - nc.Magnitude : nc.Magnitude - Magnitude);
 
     #region compare operators
 
     public static bool operator ==(NumberClass n1, NumberClass n2)
-    {
-        return Math.Round(n1.mantissa, 7) == Math.Round(n2.mantissa, 7) && n1.exponent == n2.exponent;
-    }
+        => Math.Round(n1.Mantissa, 7) == Math.Round(n2.Mantissa, 7) && n1.Exponent == n2.Exponent &&
+           n1.Magnitude == n2.Magnitude;
 
     public static bool operator !=(NumberClass n1, NumberClass n2)
-    {
-        return Math.Round(n1.mantissa, 7) != Math.Round(n2.mantissa, 7) || n1.exponent != n2.exponent;
-    }
+        => Math.Round(n1.Mantissa, 7) != Math.Round(n2.Mantissa, 7) || n1.Exponent != n2.Exponent ||
+           n1.Magnitude != n2.Magnitude;
 
     public static bool operator >(NumberClass n1, NumberClass n2)
     {
         if (n1.IsNeg() ^ n2.IsNeg()) return n2.IsNeg();
-        if (n1.exponent != n2.exponent) return n1.exponent > n2.exponent;
-        return n1.mantissa > n2.mantissa;
+        if (n1.Magnitude != n2.Magnitude) return n1.Magnitude > n2.Magnitude;
+        if (n1.Exponent != n2.Exponent) return n1.Exponent > n2.Exponent;
+        return n1.Mantissa > n2.Mantissa;
     }
 
     public static bool operator <(NumberClass n1, NumberClass n2)
     {
         if (n1.IsNeg() ^ n2.IsNeg()) return n1.IsNeg();
-        if (n1.exponent != n2.exponent) return n1.exponent < n2.exponent;
-        return n1.mantissa < n2.mantissa;
+        if (n1.Magnitude != n2.Magnitude) return n1.Magnitude < n2.Magnitude;
+        if (n1.Exponent != n2.Exponent) return n1.Exponent < n2.Exponent;
+        return n1.Mantissa < n2.Mantissa;
     }
 
     public static bool operator >=(NumberClass n1, NumberClass n2)
     {
         if (n1.IsNeg() ^ n2.IsNeg()) return n2.IsNeg();
-        if (n1.exponent != n2.exponent) return n1.exponent > n2.exponent;
-        return n1.mantissa >= n2.mantissa;
+        if (n1.Magnitude != n2.Magnitude) return n1.Magnitude > n2.Magnitude;
+        if (n1.Exponent != n2.Exponent) return n1.Exponent > n2.Exponent;
+        return n1.Mantissa >= n2.Mantissa;
     }
 
     public static bool operator <=(NumberClass n1, NumberClass n2)
     {
         if (n1.IsNeg() ^ n2.IsNeg()) return n1.IsNeg();
-        if (n1.exponent != n2.exponent) return n1.exponent < n2.exponent;
-        return n1.mantissa <= n2.mantissa;
+        if (n1.Magnitude != n2.Magnitude) return n1.Magnitude < n2.Magnitude;
+        if (n1.Exponent != n2.Exponent) return n1.Exponent < n2.Exponent;
+        return n1.Mantissa <= n2.Mantissa;
     }
 
     #endregion
 
     #region arithmetic operators
 
-    public static NumberClass operator ++(NumberClass nc) => nc += 1;
-    public static NumberClass operator --(NumberClass nc) => nc -= 1;
+    public static NumberClass operator ++(NumberClass nc) => nc + 1;
+    public static NumberClass operator --(NumberClass nc) => nc - 1;
 
     public static NumberClass operator +(NumberClass n1, NumberClass n2)
     {
-        var delta = Math.Abs(n1.exponent - n2.exponent);
+        var delta = n1.ExponentialDelta(n2);
         if (delta > 15) return n1.Max(n2);
-        if (delta == 0) return new NumberClass(n1.mantissa + n2.mantissa, n1.exponent);
-
-        if (n1 > n2) return new NumberClass(n1.mantissa + n2.mantissa / Math.Pow(10, delta), n1.exponent);
-        return new NumberClass(n2.mantissa + n1.mantissa / Math.Pow(10, delta), n2.exponent);
+        return n1.MinMaxOp(n2, (min, max, _)
+            => new NumberClass(max.Mantissa + min.Mantissa / Math.Pow(10, delta), max.Exponent, max.Magnitude));
     }
 
     public static NumberClass operator -(NumberClass n1, NumberClass n2)
     {
-        var delta = Math.Abs(n1.exponent - n2.exponent);
-        if (delta > 15)
+        var delta = n1.ExponentialDelta(n2);
+        return delta switch
         {
-            if (n2 <= n1) return n1.Max(n2);
-            var max = n1.Max(n2);
-            return new NumberClass(-max.mantissa, max.exponent);
-        }
-
-        if (delta == 0) return new NumberClass(n1.mantissa - n2.mantissa, n1.exponent);
-
-        if (n1 > n2) return new NumberClass(n1.mantissa - n2.mantissa / Math.Pow(10, delta), n1.exponent);
-        return new NumberClass(n1.mantissa / Math.Pow(10, delta) - n2.mantissa, n2.exponent);
+            > 15 when n1 >= n2 => n1,
+            > 15 => n2.Negate(),
+            _ => n1.MinMaxOp(n2, (min, max, isOrderKept) =>
+            {
+                if (!isOrderKept)
+                    return new NumberClass(n1.Mantissa - n2.Mantissa / Math.Pow(10, delta), max.Exponent,
+                        max.Magnitude);
+                return new NumberClass(n1.Mantissa / Math.Pow(10, delta) - n2.Mantissa, max.Exponent, max.Magnitude);
+            })
+        };
     }
 
+    //VVVVV continue magnitude VVVVV
     public static NumberClass operator *(NumberClass n1, NumberClass n2)
     {
         if (n1 == Zero || n2 == Zero) return Zero;
         if (n1 == One || n2 == One) return n1 == One ? n2 : n1;
-        return new NumberClass(n1.mantissa * n2.mantissa, n1.exponent + n2.exponent);
+        return new NumberClass(n1.Mantissa * n2.Mantissa, n1.Exponent + n2.Exponent);
     }
 
     public static NumberClass operator /(NumberClass n1, NumberClass n2)
@@ -173,35 +195,31 @@ public struct NumberClass
         if (n2 == Zero) throw new DivideByZeroException("NumberClass: Can not divide by 0");
         if (n1 == Zero) return Zero;
         if (n2 == One) return n1;
-        return new NumberClass(n1.mantissa / n2.mantissa, n1.exponent - n2.exponent);
+        return new NumberClass(n1.Mantissa / n2.Mantissa, n1.Exponent - n2.Exponent);
     }
 
     public NumberClass Pow(NumberClass n)
     {
         if (n == One || this == One || this == Zero) return this;
         if (n == Zero) return One;
-        if (exponent == 0 && n.exponent == 0) return Math.Pow(mantissa, n.mantissa);
+        if (Exponent == 0 && n.Exponent == 0) return Math.Pow(Mantissa, n.Mantissa);
 
-        // return new NumberClass(mantissa, exponent * n.mantissa * Math.Pow(10, n.exponent));
-
-        var tempExpo = exponent + Math.Log10(mantissa);
-        if (Math.Max(Math.Log10(exponent), 0) + n.exponent < 300)
+        var tempExpo = Exponent + Math.Log10(Mantissa);
+        if (Math.Max(Math.Log10(Exponent), 0) + n.Exponent < 300)
         {
             tempExpo *= n.GetRealMantissa();
             return tempExpo < 1e17
                 ? new NumberClass(Math.Pow(10, tempExpo % 1), Math.Floor(tempExpo))
-                : new NumberClass(mantissa, tempExpo);
+                : new NumberClass(Mantissa, tempExpo);
         }
 
-        tempExpo = Math.Log10(tempExpo);
-        tempExpo += n.exponent + Math.Log10(n.exponent);
-        return new NumberClass(mantissa, tempExpo);
+        return new NumberClass(Mantissa, Math.Log10(tempExpo) + (n.Exponent + Math.Log10(n.Exponent)));
     }
 
     public NumberClass Root(long rootBase)
     {
-        var mod = exponent % rootBase;
-        return new NumberClass(Math.Pow(mantissa * Math.Pow(10, mod), 1f / rootBase), (exponent - mod) / rootBase);
+        var mod = Exponent % rootBase;
+        return new NumberClass(Math.Pow(Mantissa * Math.Pow(10, mod), 1f / rootBase), (Exponent - mod) / rootBase);
     }
 
     public NumberClass Sqrt() => Root(2);
@@ -210,7 +228,7 @@ public struct NumberClass
     public NumberClass Log() => Log(E);
     public NumberClass Log(NumberClass logBase) => this == Zero ? Zero : Log10() / logBase.Log10();
     public NumberClass Log2() => Log(2);
-    public NumberClass Log10() => exponent + Math.Log10(mantissa);
+    public NumberClass Log10() => Exponent + Math.Log10(Mantissa);
 
     #endregion
 
@@ -222,36 +240,40 @@ public struct NumberClass
     public static explicit operator int(NumberClass n)
     {
         if (n > Int) return int.MaxValue;
-        return (int) (n.mantissa * Math.Pow(10, n.exponent));
+        return (int) (n.Mantissa * Math.Pow(10, n.Exponent));
     }
 
     public static explicit operator long(NumberClass n)
     {
         if (n > Long) return long.MaxValue;
-        return (long) (n.mantissa * Math.Pow(10, n.exponent));
+        return (long) (n.Mantissa * Math.Pow(10, n.Exponent));
     }
 
     public static explicit operator double(NumberClass n)
     {
         if (n > Double) return double.MaxValue;
-        return n.mantissa * Math.Pow(10, n.exponent);
+        return n.Mantissa * Math.Pow(10, n.Exponent);
     }
 
     public static explicit operator float(NumberClass n)
     {
         if (n > Float) return float.MaxValue;
-        return (float) (n.mantissa * Math.Pow(10, n.exponent));
+        return (float) (n.Mantissa * Math.Pow(10, n.Exponent));
     }
 
     #endregion
 
-    public override string ToString() => formats[formatter].Format(this);
-    public string ToExactString() => $"{mantissa}_{exponent}";
+    // func<n1, n2, isOrderKept, result>
+    public T MinMaxOp<T>(NumberClass nc, Func<NumberClass, NumberClass, bool, T> minMaxAction)
+        => this > nc ? minMaxAction(nc, this, false) : minMaxAction(this, nc, true);
+
+    public override string ToString() => Formats[Formatter].Format(this);
+    public string ToExactString() => $"{Mantissa}_{Exponent}_{Magnitude}";
 }
 
 public abstract class Formatter
 {
-    public static bool cutOff1E = true; // format; 1e1e30 => 1ee30
+    public static bool CutOff1E = true; // format; 1e1e30 => 1ee30
 
     // get proper format can be 0.000 or 0.### 
     string GetFormatFromCount(int count, bool optional = false)
@@ -266,42 +288,42 @@ public abstract class Formatter
 public class SciNotation : Formatter
 {
     public static readonly string Name = "SciNotation";
-    public static int beforeSciCut = 5;
-    public static int beforeSciCutExponent = 3;
-    public static char e = 'e';
+    public static int BeforeSciCut = 5;
+    public static int BeforeSciCutExponent = 3;
+    public static char E = 'e';
 
     protected override string FormatRaw(NumberClass nc)
     {
-        if (nc.exponent <= beforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
-        var expExp = Math.Floor(Math.Log10(nc.exponent));
+        if (nc.Exponent <= BeforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
+        var expExp = Math.Floor(Math.Log10(nc.Exponent));
 
-        if (expExp <= beforeSciCutExponent) return $"{nc.mantissa:0.##}{e}{nc.exponent:###,###}";
+        if (expExp <= BeforeSciCutExponent) return $"{nc.Mantissa:0.##}{E}{nc.Exponent:###,###}";
 
-        var expMan = nc.exponent / Math.Pow(10, expExp);
+        var expMan = nc.Exponent / Math.Pow(10, expExp);
 
-        string GetMantissaIfReasonable() => expExp <= 15 ? $"{nc.mantissa:0.00}" : "";
+        string GetMantissaIfReasonable() => expExp <= 15 ? $"{nc.Mantissa:0.00}" : "";
 
-        if (cutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{e}{e}{expExp:###,###}";
-        return $"{GetMantissaIfReasonable()}{e}{expMan:0.00}{e}{expExp:###,###}";
+        if (CutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{E}{E}{expExp:###,###}";
+        return $"{GetMantissaIfReasonable()}{E}{expMan:0.00}{E}{expExp:###,###}";
     }
 }
 
 public class Engineering : Formatter
 {
     public static readonly string Name = "Engineering";
-    public static int beforeSciCut = 5;
-    public static int beforeSciCutExponent = 3;
-    public static char e = 'e';
+    public static int BeforeSciCut = 5;
+    public static int BeforeSciCutExponent = 3;
+    public static char E = 'e';
 
     protected override string FormatRaw(NumberClass nc)
     {
-        if (nc.exponent <= beforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
-        var expExp = Math.Floor(Math.Log10(nc.exponent));
+        if (nc.Exponent <= BeforeSciCut) return $"{nc.GetRealMantissa():###,##0.##}";
+        var expExp = Math.Floor(Math.Log10(nc.Exponent));
 
-        var ext = nc.exponent % 3;
-        var nMan = nc.mantissa * Math.Pow(10, ext);
-        var nExp = nc.exponent - ext;
-        if (expExp <= beforeSciCutExponent) return $"{nMan:##0.##}{e}{nExp:###,###}";
+        var ext = nc.Exponent % 3;
+        var nMan = nc.Mantissa * Math.Pow(10, ext);
+        var nExp = nc.Exponent - ext;
+        if (expExp <= BeforeSciCutExponent) return $"{nMan:##0.##}{E}{nExp:###,###}";
 
         var expMan = nExp / Math.Pow(10, expExp);
 
@@ -310,7 +332,7 @@ public class Engineering : Formatter
         var expExt = expExp % 3;
         var nExpMan = expMan * Math.Pow(10, expExt);
         var nExpExp = expExp - expExt;
-        if (cutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{e}{e}{nExpExp:###,###}";
-        return $"{GetMantissaIfReasonable()}{e}{nExpMan:##0.00}{e}{nExpExp:###,###}";
+        if (CutOff1E && expMan == 1) return $"{GetMantissaIfReasonable()}{E}{E}{nExpExp:###,###}";
+        return $"{GetMantissaIfReasonable()}{E}{nExpMan:##0.00}{E}{nExpExp:###,###}";
     }
 }

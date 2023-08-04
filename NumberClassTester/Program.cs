@@ -1,18 +1,25 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Numerics;
+using Newtonsoft.Json;
+using NUnit.Framework;
 
-class Program
+public class Program
 {
     [TestFixture]
     public class TestClass
     {
         public NumberClass n1;
         public NumberClass n2;
+        public NumberClass n3;
+        public NumberClass n4;
 
         [SetUp]
         public void Setup()
         {
             n1 = 10000;
             n2 = "1e50";
+            n3 = new NumberClass(1, 1e100);
+            n4 = new NumberClass(1, 101, 1);
         }
 
         [Test]
@@ -63,6 +70,8 @@ class Program
             var sub3n2 = new NumberClass(1.9603208295529388, 7);
             var sub3 = sub3n1 - sub3n2;
             var sub3Res = new NumberClass(-1.73470298382095773, 7);
+            Console.WriteLine(sub3.ToExactString());
+            Console.WriteLine(sub3Res.ToExactString());
             Assert.True(sub3 == sub3Res);
         }
 
@@ -100,7 +109,41 @@ class Program
         {
             Assert.True(new NumberClass(3).Pow(4).Root(4) == 3);
         }
+
+        [Test]
+        public void Serialize()
+        {
+            var jsonString = JsonConvert.SerializeObject(n2);
+            var n2Converted = JsonConvert.DeserializeObject<NumberClass>(jsonString);
+            Console.WriteLine(n2);
+            Console.WriteLine(jsonString);
+            Console.WriteLine(n2Converted);
+            Assert.True(n2Converted == n2);
+        }
+
+        [Test]
+        public void MagnitudeTest()
+        {
+            Assert.True(n1.Magnitude == 0);
+            Assert.True(n2.Magnitude == 0);
+            Assert.True(n3.Magnitude == 1);
+        }
+
+        [Test]
+        public void MagnitudeAdd()
+        {
+            Assert.True((n3 + n3).ToExactString() == "2_100_1");
+            Assert.True((n3 + n4).ToExactString() == "1.1_101_1");
+        }
         
+        [Test]
+        public void MagnitudeSubtract()
+        {
+            Assert.True((n3 - n3).ToExactString() == "0_0_0");
+            Assert.True((n3 - n4).ToExactString() == "-9_100_1");
+            Assert.True((n4 - n3).ToExactString() == "9_100_1");
+        }
+
         /*
         NumberClass b = 2;
 

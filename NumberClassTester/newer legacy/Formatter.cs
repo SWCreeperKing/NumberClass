@@ -158,7 +158,7 @@ namespace NumberClassTester.newer_legacy
                     for (var i = splitCount; i > 0; i--) stringBuilder.Insert(stringBuilder.Length - i * 3, separator);
                     break;
                 default:
-                    throw new Exception("Unsupported value: " + splitCount);
+                    throw new Exception($"Unsupported value: {splitCount}");
             }
 
             if (noDecimal) return stringBuilder.ToString();
