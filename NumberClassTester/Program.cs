@@ -18,7 +18,7 @@ public class Program
         {
             n1 = 10000;
             n2 = "1e50";
-            n3 = new NumberClass(1, 1e100);
+            n3 = new NumberClass(1, 1e99);
             n4 = new NumberClass(1, 101, 1);
         }
 
@@ -91,6 +91,7 @@ public class Program
         [Test]
         public void PowerTest()
         {
+            Console.WriteLine(n1.Pow(n2));
             Assert.True(n1.Pow(n2) == new NumberClass(1, 4e50));
             Assert.True(n2.Pow(n1) == new NumberClass(1, 50e4));
         }
@@ -126,24 +127,43 @@ public class Program
         {
             Assert.True(n1.Magnitude == 0);
             Assert.True(n2.Magnitude == 0);
-            Assert.True(n3.Magnitude == 1);
+            Assert.True(n3.Magnitude == 0);
+            Assert.True(n4.Magnitude == 1);
         }
 
         [Test]
         public void MagnitudeAdd()
         {
-            Assert.True((n3 + n3).ToExactString() == "2_100_1");
-            Assert.True((n3 + n4).ToExactString() == "1.1_101_1");
+            Assert.True((n3 + n3).ToExactString() == "2_1e99_0");
+            Assert.True((n3 + n4).ToExactString() == "1.01_101_1");
         }
-        
+
         [Test]
         public void MagnitudeSubtract()
         {
             Assert.True((n3 - n3).ToExactString() == "0_0_0");
-            Assert.True((n3 - n4).ToExactString() == "-9_100_1");
-            Assert.True((n4 - n3).ToExactString() == "9_100_1");
+            Assert.True((n3 - n4).ToExactString() == "-9.9_100_1");
+            Assert.True((n4 - n3).ToExactString() == "9.9_100_1");
         }
 
+        [Test]
+        public void MagnitudeMultiply()
+        {
+            Assert.True((n3 * n4).ToRawString() == "1_200_1");
+        }
+
+        [Test]
+        public void MagnitudeDivide()
+        {
+            Assert.True((n3 / n4).ToRawString() == "1_-2_0");
+        }
+
+        [Test]
+        public void MagnitudePower()
+        {
+            Console.WriteLine(n3.Pow(n4).ToRawString());
+        }
+        
         /*
         NumberClass b = 2;
 

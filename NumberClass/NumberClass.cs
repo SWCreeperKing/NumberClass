@@ -6,6 +6,8 @@ using System.Linq;
 public readonly struct NumberClass
 {
     public const double MagnitudeLimiter = 1e100;
+    public const int U128Exponent = 38;
+    public static readonly double U128Double = (double) UInt128.MaxValue;
 
     public static readonly NumberClass MaxMagnitudeValue = new(9.99, double.MaxValue, UInt128.MaxValue);
     public static readonly NumberClass MaxValue = new(9.99, double.MaxValue);
@@ -98,7 +100,7 @@ public readonly struct NumberClass
         {
             0 => Math.Abs(Exponent - nc.Exponent),
             1 => MinMaxOp(nc, (min, max, _)
-                => Math.Abs(min.Exponent - Math.Pow(10, max.Exponent))),
+                => Math.Abs(double.Log10(min.Exponent) - max.Exponent)),
             _ => 16
         };
 
@@ -182,12 +184,20 @@ public readonly struct NumberClass
         };
     }
 
-    //VVVVV continue magnitude VVVVV
     public static NumberClass operator *(NumberClass n1, NumberClass n2)
     {
         if (n1 == Zero || n2 == Zero) return Zero;
         if (n1 == One || n2 == One) return n1 == One ? n2 : n1;
-        return new NumberClass(n1.Mantissa * n2.Mantissa, n1.Exponent + n2.Exponent);
+
+        var exponent = n1.MagnitudeDelta(n2) switch
+        {
+            0 => n1.Exponent + n2.Exponent,
+            1 => n1.MinMaxOp(n2, (min, max, _)
+                => double.Log10(min.Exponent) + max.Exponent),
+            _ => Math.Max(n1.Exponent, n2.Exponent)
+        };
+
+        return new NumberClass(n1.Mantissa * n2.Mantissa, exponent, n1.MaxMagnitude(n2));
     }
 
     public static NumberClass operator /(NumberClass n1, NumberClass n2)
@@ -195,7 +205,16 @@ public readonly struct NumberClass
         if (n2 == Zero) throw new DivideByZeroException("NumberClass: Can not divide by 0");
         if (n1 == Zero) return Zero;
         if (n2 == One) return n1;
-        return new NumberClass(n1.Mantissa / n2.Mantissa, n1.Exponent - n2.Exponent);
+
+        var exponent = n1.MagnitudeDelta(n2) switch
+        {
+            0 => n1.Exponent - n2.Exponent,
+            1 => n1.MinMaxOp(n2, (min, max, _)
+                => double.Log10(min.Exponent) - max.Exponent),
+            _ => n1.Exponent > n2.Exponent ? n1.Exponent : -n2.Exponent
+        };
+
+        return new NumberClass(n1.Mantissa / n2.Mantissa, exponent);
     }
 
     public NumberClass Pow(NumberClass n)
@@ -204,20 +223,38 @@ public readonly struct NumberClass
         if (n == Zero) return One;
         if (Exponent == 0 && n.Exponent == 0) return Math.Pow(Mantissa, n.Mantissa);
 
-        var tempExpo = Exponent + Math.Log10(Mantissa);
-        if (Math.Max(Math.Log10(Exponent), 0) + n.Exponent < 300)
+        if (Magnitude > 0 || n.Magnitude > 0)
         {
-            tempExpo *= n.GetRealMantissa();
-            return tempExpo < 1e17
-                ? new NumberClass(Math.Pow(10, tempExpo % 1), Math.Floor(tempExpo))
-                : new NumberClass(Mantissa, tempExpo);
+            // todo: find a way to do this /shrug
+            Console.WriteLine("EXECUTED ADVANCED POWER, WIP RETURNING MAX");
+            return Max(n);
         }
 
-        return new NumberClass(Mantissa, Math.Log10(tempExpo) + (n.Exponent + Math.Log10(n.Exponent)));
+        var tempExpo = Exponent + Math.Log10(Mantissa);
+
+        if (Math.Max(Math.Log10(Exponent), 0) + n.Exponent >= 300)
+        {
+            var exponent1 = Math.Log10(tempExpo);
+            var exponent2 = n.Exponent + Math.Log10(n.Exponent);
+
+            return new NumberClass(Mantissa, exponent1 + exponent2);
+        }
+
+        tempExpo *= n.GetRealMantissa();
+        return tempExpo < 1e17
+            ? new NumberClass(Math.Pow(10, tempExpo % 1), Math.Floor(tempExpo), Magnitude)
+            : new NumberClass(Mantissa, tempExpo, Magnitude);
     }
 
     public NumberClass Root(long rootBase)
     {
+        if (Magnitude > 0)
+        {
+            // todo: find a way to do this /shrug
+            Console.WriteLine("EXECUTED ADVANCED POWER, WIP RETURNING MAX");
+            return this;
+        }
+
         var mod = Exponent % rootBase;
         return new NumberClass(Math.Pow(Mantissa * Math.Pow(10, mod), 1f / rootBase), (Exponent - mod) / rootBase);
     }
@@ -228,7 +265,18 @@ public readonly struct NumberClass
     public NumberClass Log() => Log(E);
     public NumberClass Log(NumberClass logBase) => this == Zero ? Zero : Log10() / logBase.Log10();
     public NumberClass Log2() => Log(2);
-    public NumberClass Log10() => Exponent + Math.Log10(Mantissa);
+
+    public NumberClass Log10()
+    {
+        if (Magnitude > 0)
+        {
+            // todo: find a way to do this /shrug
+            Console.WriteLine("EXECUTED ADVANCED POWER, WIP RETURNING MAX");
+            return this;
+        }
+
+        return Exponent + Math.Log10(Mantissa);
+    }
 
     #endregion
 
@@ -268,7 +316,8 @@ public readonly struct NumberClass
         => this > nc ? minMaxAction(nc, this, false) : minMaxAction(this, nc, true);
 
     public override string ToString() => Formats[Formatter].Format(this);
-    public string ToExactString() => $"{Mantissa}_{Exponent}_{Magnitude}";
+    public string ToExactString() => $"{Math.Round(Mantissa, 10)}_{Exponent}_{Magnitude}".Replace("E+", "e");
+    public string ToRawString() => $"{Mantissa}_{Exponent}_{Magnitude}";
 }
 
 public abstract class Formatter
