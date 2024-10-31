@@ -280,8 +280,8 @@ public readonly struct NumberClass
 
     public NumberClass Pow(NumberClass n) // from https://github.com/Patashu/break_eternity.js
     {
-        // if (n == One || this == One || this == Zero) return this;
-        // if (n == Zero) return One;
+        if (n == One || this == One || this == Zero) return this;
+        if (n == Zero) return One;
 
         var ret = (Abs().Log10() * n).Pow10WithThis();
         if (IsNeg() && int.Parse($"{$"{n.Mantissa}"[^1]}") % 2 != 0) return ret.Negate();
